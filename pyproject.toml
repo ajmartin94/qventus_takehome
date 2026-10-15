@@ -1,0 +1,101 @@
+[project]
+name = "or-booking"
+version = "0.1.0"
+description = "AI-assisted OR case booking: a prototype for the Qventus AI Solution Architect challenge"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "typer>=0.12",
+    "rich>=13.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "import-linter>=2.0",
+]
+
+[project.scripts]
+or-booking = "or_booking.channels.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/or_booking"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+# ---------------------------------------------------------------------------
+# Layering (Section 2.1 of docs/implementation_plan.md). `lint-imports` checks
+# these, and tests/unit/test_layering.py runs the same check inside pytest.
+# ---------------------------------------------------------------------------
+[tool.importlinter]
+root_package = "or_booking"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Domain core is pure: no ports, adapters, orchestration, channels or I/O libraries"
+type = "forbidden"
+source_modules = ["or_booking.domain"]
+forbidden_modules = [
+    "or_booking.ports",
+    "or_booking.adapters",
+    "or_booking.orchestrator",
+    "or_booking.interpretation",
+    "or_booking.channels",
+    "or_booking.app",
+    "or_booking.observability",
+    "yaml",
+    "rich",
+    "typer",
+]
+
+[[tool.importlinter.contracts]]
+name = "Ports depend only on the domain"
+type = "forbidden"
+source_modules = ["or_booking.ports"]
+forbidden_modules = [
+    "or_booking.adapters",
+    "or_booking.orchestrator",
+    "or_booking.interpretation",
+    "or_booking.channels",
+    "or_booking.app",
+    "yaml",
+    "rich",
+    "typer",
+]
+
+[[tool.importlinter.contracts]]
+name = "Orchestration never imports an adapter or a vendor SDK"
+type = "forbidden"
+source_modules = ["or_booking.orchestrator", "or_booking.interpretation"]
+forbidden_modules = [
+    "or_booking.adapters",
+    "or_booking.channels",
+    "or_booking.app",
+    "yaml",
+]
+
+[[tool.importlinter.contracts]]
+name = "Only the composition root imports adapters"
+type = "forbidden"
+source_modules = ["or_booking.channels"]
+forbidden_modules = ["or_booking.adapters"]
+allow_indirect_imports = true   # channels reach adapters only through or_booking.app
+
+[[tool.importlinter.contracts]]
+name = "Adapters never reach into orchestration or channels"
+type = "forbidden"
+source_modules = ["or_booking.adapters"]
+forbidden_modules = [
+    "or_booking.orchestrator",
+    "or_booking.interpretation",
+    "or_booking.channels",
+    "or_booking.app",
+]

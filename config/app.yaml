@@ -1,0 +1,31 @@
+# Agent settings only: which adapter backs each port, and model and effort per prompt.
+#
+# Hospital rules (block release, schedule close, readiness deadlines, routing, autonomy)
+# are NOT configured here. They belong to the hospital and are read through ports; in
+# the prototype they live in the simulated hospital under fixtures/.
+
+# Where the simulated hospital lives. Read only by fixture-backed adapters.
+fixtures_dir: fixtures
+
+ports:
+  clock:
+    adapter: frozen
+    settings: {at: "2026-10-14T09:00:00"}   # demos and tests run at Wed Oct 14, 2026 09:00
+  audit_log:
+    adapter: jsonl
+    settings: {path: var/audit.jsonl}
+  store:
+    adapter: memory
+
+llm:
+  default_model: claude-opus-5-5
+  prompts:
+    interpret_turn:    {model: claude-opus-5-5, effort: medium}
+    extract_document:  {model: claude-opus-5-5, effort: medium}
+    ask_clarification: {model: claude-opus-5-5, effort: low}
+    explain_options:   {model: claude-opus-5-5, effort: low}
+    summarize_outcome: {model: claude-opus-5-5, effort: low}
+
+conversation:
+  # The agent's own setting, not the hospital's: clarification attempts before a person takes over.
+  max_clarification_attempts: 3
