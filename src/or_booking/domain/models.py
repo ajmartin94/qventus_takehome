@@ -110,8 +110,14 @@ FIELD_DEFINITIONS: dict[BookingField, str] = {
     BookingField.PATIENT_NAME: "The patient's name as written.",
     BookingField.PATIENT_DOB: "The patient's date of birth.",
     BookingField.DIAGNOSIS: "The diagnosis or indication (for example 'OA right knee').",
-    BookingField.ANESTHESIA_TYPE: "Planned anesthesia (for example general, general with nerve block, MAC).",
-    BookingField.PATIENT_CLASS: "Outpatient, extended recovery (overnight) or inpatient.",
+    BookingField.ANESTHESIA_TYPE: (
+        "Planned anesthesia. Use one of general, general_with_nerve_block, regional, mac or local when the words "
+        "clearly mean one (\"GA, no block\" is general); otherwise as stated."
+    ),
+    BookingField.PATIENT_CLASS: (
+        "Use one of outpatient, extended_recovery (overnight or 23-hour stay) or inpatient when the words clearly "
+        "mean one; otherwise as stated."
+    ),
     BookingField.IMPLANTS: "Implants, loaner sets and whether a vendor representative attends.",
     BookingField.AUTHORIZATION: "Prior authorization status and number, if stated.",
     BookingField.PREFERENCES: "Days, times or rooms to prefer or avoid.",

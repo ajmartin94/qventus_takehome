@@ -9,6 +9,7 @@ dependencies = [
     "pyyaml>=6.0",
     "typer>=0.12",
     "rich>=13.7",
+    "anthropic>=1.14",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +31,7 @@ packages = ["src/or_booking"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = ["live: calls the real model and spends API money; runs only with OR_BOOKING_LIVE=1 and an API key"]
 
 # ---------------------------------------------------------------------------
 # Layering (Section 2.1 of docs/implementation_plan.md). `lint-imports` checks
@@ -54,6 +56,7 @@ forbidden_modules = [
     "yaml",
     "rich",
     "typer",
+    "anthropic",
 ]
 
 [[tool.importlinter.contracts]]
@@ -69,6 +72,7 @@ forbidden_modules = [
     "yaml",
     "rich",
     "typer",
+    "anthropic",
 ]
 
 [[tool.importlinter.contracts]]
@@ -80,6 +84,7 @@ forbidden_modules = [
     "or_booking.channels",
     "or_booking.app",
     "yaml",
+    "anthropic",
 ]
 
 [[tool.importlinter.contracts]]
@@ -99,3 +104,10 @@ forbidden_modules = [
     "or_booking.channels",
     "or_booking.app",
 ]
+
+[[tool.importlinter.contracts]]
+name = "Only the Anthropic adapter imports the Anthropic SDK"
+type = "forbidden"
+source_modules = ["or_booking.app", "or_booking.channels", "or_booking.observability"]
+forbidden_modules = ["anthropic"]
+allow_indirect_imports = true   # the composition root reaches it only through adapters.llm_anthropic

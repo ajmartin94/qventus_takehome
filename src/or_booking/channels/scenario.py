@@ -104,7 +104,10 @@ def services_for(scenario: Scenario, *, live: bool = False, config_path: Path | 
     ports["clock"] = PortConfig(adapter="frozen", settings={"at": scenario.clock.isoformat()})
     ports["audit_log"] = PortConfig(adapter="memory")
     ports["store"] = PortConfig(adapter="memory")
-    if not live:
+    if live:
+        if ports.get("llm", PortConfig(adapter="scripted")).adapter == "scripted":
+            ports["llm"] = PortConfig(adapter="anthropic")
+    else:
         ports["llm"] = PortConfig(adapter="scripted")
     services = build(config.model_copy(update={"ports": ports}), project_root=root)
     if not live:

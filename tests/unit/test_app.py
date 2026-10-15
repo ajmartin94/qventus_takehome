@@ -71,6 +71,23 @@ def test_jsonl_audit_log_round_trips(tmp_path) -> None:
     assert len(log.entries()) == 2
 
 
+def test_env_file_fills_gaps_but_never_overrides_the_environment(tmp_path, monkeypatch) -> None:
+    from or_booking.app import load_env_file
+
+    env = tmp_path / ".env"
+    env.write_text("# comment\nOB_TEST_A=from-file\nexport OB_TEST_B='quoted'\nOB_TEST_C=\nOB_TEST_D=from-file\n", encoding="utf-8")
+    for key in ("OB_TEST_A", "OB_TEST_B", "OB_TEST_C"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("OB_TEST_D", "from-environment")
+    load_env_file(env)
+    import os
+
+    assert (os.environ["OB_TEST_A"], os.environ["OB_TEST_B"], os.environ["OB_TEST_D"]) == ("from-file", "quoted", "from-environment")
+    assert "OB_TEST_C" not in os.environ  # an empty value would shadow other credential sources
+    for key in ("OB_TEST_A", "OB_TEST_B"):
+        monkeypatch.delenv(key)
+
+
 def test_cli_starts() -> None:
     result = CliRunner().invoke(cli_app, ["ports"])
     assert result.exit_code == 0, result.output

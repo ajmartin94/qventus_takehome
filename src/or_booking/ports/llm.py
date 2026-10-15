@@ -24,9 +24,9 @@ class LLMRequest(Model):
     prompt_version: str  # e.g. "v1"; logged with every call
     system: str  # the stable, cache-friendly part comes first
     user: str  # per-request state and the message come last
-    model: str | None = None  # None: the adapter's configured default for this prompt
-    effort: Literal["low", "medium", "high", "max"] | None = None
-    max_tokens: int = 2048
+    model: str | None = None  # None: the adapter's configured default
+    effort: Literal["low", "medium", "high", "xhigh", "max"] | None = None
+    max_tokens: int | None = None  # None: the adapter's default (thinking counts against it, so don't lowball)
 
 
 class TokenUsage(Model):

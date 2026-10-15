@@ -9,6 +9,7 @@ coordinator instead of guessing.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from typing import Any, TypeVar
@@ -123,6 +124,9 @@ class Interpreter:
         detail: dict[str, Any] = {
             "prompt": request.prompt_id,
             "version": request.prompt_version,
+            # The template is versioned; shared fragments and generated definitions aren't, so the
+            # rendered system prompt's hash is what pins the exact text a call used.
+            "system_sha": hashlib.sha256(request.system.encode("utf-8")).hexdigest()[:12],
             "model": request.model,
             "effort": request.effort,
             "outcome": outcome,

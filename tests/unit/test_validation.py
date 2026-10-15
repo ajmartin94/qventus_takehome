@@ -52,7 +52,8 @@ def test_parse_laterality(text, expected) -> None:
     ("text", "expected"),
     [("General + nerve block", AnesthesiaType.GENERAL_WITH_NERVE_BLOCK), ("GA", AnesthesiaType.GENERAL),
      ("general", AnesthesiaType.GENERAL), ("spinal with MAC", AnesthesiaType.REGIONAL), ("MAC", AnesthesiaType.MAC),
-     ("general_with_nerve_block", AnesthesiaType.GENERAL_WITH_NERVE_BLOCK), ("whatever is easiest", None)],
+     ("general_with_nerve_block", AnesthesiaType.GENERAL_WITH_NERVE_BLOCK), ("general, no block", AnesthesiaType.GENERAL),
+     ("GA without a nerve block", AnesthesiaType.GENERAL), ("whatever is easiest", None)],
 )  # fmt: skip
 def test_parse_anesthesia(text, expected) -> None:
     assert parse_anesthesia(text) is expected

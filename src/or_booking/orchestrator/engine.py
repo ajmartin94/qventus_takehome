@@ -125,6 +125,7 @@ class Orchestrator:
 
     def context(self, session: Session) -> TurnContext:
         return TurnContext(
+            today=f"{self.ports.clock.now():%Y-%m-%d (%A)}",
             state=session.state.value,
             filled={f.value: fv.stated for f, fv in session.draft.fields.items()},
             open_question=session.last_question if session.state is State.CLARIFYING else None,
@@ -135,6 +136,7 @@ class Orchestrator:
 
     def apply(self, session: Session, interp: TurnInterpretation, source: SourceKind) -> None:
         self.apply_mentions(session, interp.mentions + interp.corrections, source)
+        session.reader_notes = interp.unclear
         if interp.stated_urgency != "none":
             session.draft = session.draft.model_copy(update={"stated_urgency": interp.stated_urgency})
         if interp.cancel_reason:

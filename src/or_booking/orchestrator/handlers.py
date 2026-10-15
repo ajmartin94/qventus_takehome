@@ -199,6 +199,7 @@ class Handlers:
             else:
                 s.intent = extracted.intent
                 self.o.apply_mentions(s, extracted.mentions, SourceKind.DOCUMENT)
+                s.reader_notes = extracted.unreadable
                 if extracted.stated_urgency != "none":
                     s.draft = s.draft.model_copy(update={"stated_urgency": extracted.stated_urgency})
                 s.requester = extracted.sender or (Contact(name=incoming.sender) if incoming.sender else None)
@@ -572,7 +573,7 @@ class Handlers:
         s.open_question = issue
         stated = s.draft.get(issue.field)
         facts = {"field": issue.field.value, "kind": issue.kind.value, "detail": issue.detail, "candidate_count": issue.candidate_count,
-                 "stated": stated.stated if stated else None}  # fmt: skip
+                 "stated": stated.stated if stated else None, "reader_notes": s.reader_notes}  # fmt: skip
         s.last_question = self.o.interpreter.phrase("ask_clarification", facts, fallback=question_text(issue, stated))
         out.say(s.last_question)
         if s.interactive:

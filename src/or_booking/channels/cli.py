@@ -19,7 +19,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from or_booking.app import PORTS, Services, build, build_orchestrator, load_config
+from or_booking.app import PORTS, PortConfig, Services, build, build_orchestrator, load_config
 from or_booking.channels.render import render_result
 from or_booking.channels.scenario import load_scenario, run_scenario, scenario_paths, services_for
 from or_booking.domain.errors import BookingError
@@ -173,15 +173,21 @@ def find_scenario(name: str) -> Path:
 
 
 @app.command()
-def replay(scenario: str = typer.Argument(..., help="Scenario file, or a demo scenario name such as d1")) -> None:
-    """Run a scenario with the scripted model: deterministic, no network. Exits 1 if its expectations fail."""
+def replay(
+    scenario: str = typer.Argument(..., help="Scenario file, or a demo scenario name such as d1"),
+    live: bool = typer.Option(False, "--live", help="Let the real model read and interpret every turn (spends API credit)"),
+) -> None:
+    """Run a scenario and grade it against its expectations. Scripted model by default: deterministic, no network."""
     sc = load_scenario(find_scenario(scenario))
-    run = run_scenario(sc)
-    console.rule(f"[bold]{sc.title}[/bold]  ({sc.id}, clock {sc.clock:%a %b %d %H:%M})")
+    run = run_scenario(sc, live=live)
+    mode = "live model" if live else "scripted model"
+    console.rule(f"[bold]{sc.title}[/bold]  ({sc.id}, clock {sc.clock:%a %b %d %H:%M}, {mode})")
     for turn in run.turns:
         console.print(Text(f"{turn.speaker}: {turn.text}", style="magenta"))
         console.print(render_result(turn.result))
         console.print()
+    if live:
+        console.print(Text(_model_usage(run.audit), style="dim"))
     if run.passed:
         console.print(Text(f"PASS: {sc.id} ended in {run.session.state.value}; every expectation and safety gate held.", style="green"))
         return
@@ -190,9 +196,25 @@ def replay(scenario: str = typer.Argument(..., help="Scenario file, or a demo sc
     raise typer.Exit(1)
 
 
+def _model_usage(audit: list) -> str:
+    calls = [e for e in audit if e.kind.value == "model_call"]
+    usage = [e.detail.get("usage", {}) for e in calls]
+    tokens_in = sum(u.get("input_tokens", 0) + u.get("cache_read_tokens", 0) + u.get("cache_write_tokens", 0) for u in usage)
+    tokens_out = sum(u.get("output_tokens", 0) for u in usage)
+    served = sorted({e.detail.get("served_by") for e in calls if e.detail.get("served_by")})
+    return f"{len(calls)} model calls, {tokens_in} input / {tokens_out} output tokens, served by {', '.join(served) or '-'}"
+
+
+def _live_services() -> Services:
+    config, root = load_config()
+    ports = {**config.ports, "llm": PortConfig(adapter="anthropic")}
+    return build(config.model_copy(update={"ports": ports}), project_root=root)
+
+
 @app.command()
 def chat(
-    scenario: str = typer.Option(None, help="Step through a scenario's scripted turns (no network): press Enter to send each"),
+    scenario: str = typer.Option(None, help="Start from a scenario's input; press Enter to send its next coordinator turn"),
+    live: bool = typer.Option(False, "--live", help="Use the real model, so you can type freely (spends API credit)"),
     coordinator: str = typer.Option("C-0042", help="Who confirms bookings in this session"),
 ) -> None:
     """Talk to the agent. Type /help for commands."""
@@ -200,7 +222,7 @@ def chat(
     current: str | None = None
     if scenario:
         sc = load_scenario(find_scenario(scenario))
-        services = services_for(sc)
+        services = services_for(sc, live=live)
         agent = build_orchestrator(services, coordinator_id=coordinator)
         turns = list(sc.coordinator_turns)
         if sc.input.document:
@@ -212,9 +234,9 @@ def chat(
         console.print(render_result(result))
         current = result.request_id
     else:
-        services = _services()
+        services = _live_services() if live else _services()
         if services.wiring.get("llm") == "scripted":
-            console.print("Free chat needs a live model (Phase 4). Use --scenario to step through a scripted conversation.")
+            console.print("Free chat needs the live model: add --live (and ANTHROPIC_API_KEY in .env), or use --scenario.")
             raise typer.Exit(1)
         agent = build_orchestrator(services, coordinator_id=coordinator)
 

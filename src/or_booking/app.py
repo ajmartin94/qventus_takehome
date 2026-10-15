@@ -54,7 +54,7 @@ class PromptModelSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     model: str
-    effort: Literal["low", "medium", "high", "max"]
+    effort: Literal["low", "medium", "high", "xhigh", "max"]
 
 
 class LLMSettings(BaseModel):
@@ -92,11 +92,31 @@ def default_config_path() -> Path:
 
 
 def load_config(path: Path | None = None) -> tuple[AppConfig, Path]:
-    """Returns the validated config and the project root that relative paths resolve against."""
+    """Returns the validated config and the project root that relative paths resolve against.
+
+    Also loads the project's `.env` (secrets such as ANTHROPIC_API_KEY) into the environment.
+    """
     path = path or default_config_path()
     with path.open(encoding="utf-8") as f:
         config = AppConfig.model_validate(yaml.safe_load(f))
-    return config, path.resolve().parent.parent
+    root = path.resolve().parent.parent
+    load_env_file(root / ".env")
+    return config, root
+
+
+def load_env_file(path: Path) -> None:
+    """Read KEY=value lines into the environment. Variables already set win; empty values are skipped,
+    since an empty ANTHROPIC_API_KEY would shadow other credential sources."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.removeprefix("export ").partition("=")
+        key, value = key.strip(), value.strip().strip("'\"")
+        if key and value and key not in os.environ:
+            os.environ[key] = value
 
 
 # ---------------------------------------------------------------------------
@@ -185,6 +205,16 @@ def _scripted_llm(ctx: BuildContext, settings: dict[str, Any]) -> Any:
     return ScriptedLLM()
 
 
+def _anthropic_llm(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.llm_anthropic import AnthropicLLM
+
+    return AnthropicLLM(
+        fallbacks=settings.get("fallbacks", "default"),
+        timeout=float(settings.get("timeout_seconds", 120)),
+        max_tokens=int(settings.get("max_tokens", 16000)),
+    )
+
+
 def _scheduling_mock(ctx: BuildContext, settings: dict[str, Any]) -> Any:
     from or_booking.adapters.scheduling_mock import MockSchedulingService
 
@@ -247,7 +277,7 @@ ADAPTERS: dict[str, dict[str, Factory]] = {
     "event_source": {"simulated": _events_simulated},
     "outbox": {"drafts": _outbox_drafts},
     "readiness_handoff": {"recorded": _readiness_recorded},
-    "llm": {"scripted": _scripted_llm},
+    "llm": {"scripted": _scripted_llm, "anthropic": _anthropic_llm},
 }
 
 

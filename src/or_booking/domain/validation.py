@@ -84,9 +84,10 @@ def parse_laterality(text: str) -> Laterality | None:
 def parse_anesthesia(text: str) -> AnesthesiaType | None:
     if text in AnesthesiaType._value2member_map_:
         return AnesthesiaType(text)
-    words = set(_words(text))
+    negated = re.search(r"\b(?:no|without|w/o)\s+(?:a\s+)?(?:nerve\s+)?block", text.lower())
+    words = set(_words(re.sub(r"\b(?:no|without|w/o)\s+(?:a\s+)?(?:nerve\s+)?block", " ", text.lower())))
     general = bool(words & {"general", "ga", "geta"})
-    if general and words & {"block", "nerve", "regional"}:
+    if general and words & {"block", "nerve", "regional"} and not negated:
         return AnesthesiaType.GENERAL_WITH_NERVE_BLOCK
     if general:
         return AnesthesiaType.GENERAL

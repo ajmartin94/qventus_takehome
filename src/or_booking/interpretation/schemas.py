@@ -95,6 +95,7 @@ class OptionLine(_Schema):
 class TurnContext(_Schema):
     """The current state in brief, as the interpretation prompt shows it."""
 
+    today: str = ""  # ISO date, so "Tuesday" or "11/9" can be normalized to a full date
     state: str
     filled: dict[str, str] = {}
     open_question: str | None = None

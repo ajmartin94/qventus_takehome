@@ -74,6 +74,7 @@ class Session(BaseModel):
     issues: list[Issue] = []
     open_question: Issue | None = None
     last_question: str | None = None
+    reader_notes: list[str] = []  # what the model couldn't interpret in the last input, in its words
     attempts: dict[str, int] = {}
     reply_deadline: datetime | None = None
     cancel_reason: str | None = None

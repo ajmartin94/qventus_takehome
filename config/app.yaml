@@ -33,7 +33,10 @@ ports:
   outbox:            {adapter: drafts}      # drafts only; nothing is sent
   readiness_handoff: {adapter: recorded}
 
-  # The model. `scripted` replays scenario scripts with no network; Phase 4 adds `anthropic`.
+  # The model. `scripted` replays scenario scripts with no network (tests, offline demos).
+  # `anthropic` calls Claude; `--live` on `replay` and `chat` switches to it for one command.
+  # Its settings: {fallbacks: default, timeout_seconds: 120, max_tokens: 16000}. The key comes
+  # from ANTHROPIC_API_KEY (environment or .env).
   llm:               {adapter: scripted}
 
 llm:
