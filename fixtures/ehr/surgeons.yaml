@@ -41,6 +41,7 @@
   service: Ophthalmology
   privileges: [CATARACT]
   office: {name: Clearwater Eye Associates (Dr. Alvarez), phone: 555-0192, fax: 555-0193}
+  runs_paired_rooms: true   # cataract lists run in two rooms
 
 - id: S-MEHTA
   first_name: Raj

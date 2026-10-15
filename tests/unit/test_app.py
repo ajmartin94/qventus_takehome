@@ -21,7 +21,7 @@ def test_config_wires_every_configured_port(services) -> None:
     for name, adapter in services.wiring.items():
         if adapter == "-":
             with pytest.raises(PortNotWired):
-                getattr(services, name).anything
+                _ = getattr(services, name).anything
 
 
 def test_unknown_adapter_is_rejected() -> None:

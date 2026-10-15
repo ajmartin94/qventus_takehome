@@ -19,6 +19,7 @@
   gates_booking:
     within_days_of_surgery: 14
     satisfied_when: {authorization.status: [pending, approved], authorization.has_number: true}
+    asks_for: authorization
   source: preop_readiness.md#authorization
 
 - id: financial_clearance
@@ -43,6 +44,7 @@
   variants:
     - applies_when: {loaner_set.first_time: true}
       due: {before_surgery: {business_days: 3}}
+      label: the set is new to the hospital
   source: implants_and_loaner_sets.md#loaner-sets
 
 - id: vendor_rep

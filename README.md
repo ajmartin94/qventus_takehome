@@ -8,7 +8,13 @@ Prototype for the Qventus AI Solution Architect challenge. The agent turns OR ca
 
 ## Status
 
-Built through Phase 1 of the [build order](docs/implementation_plan.md#71-phases): the skeleton (ports, composition root, audit, layering check) and the simulated hospital (Northwind fixtures and the mock scheduling system).
+Built through Phase 2 of the [build order](docs/implementation_plan.md#71-phases):
+
+- **Phase 0, skeleton:** ports, composition root, audit, layering check.
+- **Phase 1, simulated hospital:** Northwind fixtures and the mock scheduling system.
+- **Phase 2, domain core** (`src/or_booking/domain/`): policy evaluation for the four rule types, qualification of the availability query and the booking request, sizing, ranking, readiness with business days, booking strategies (standard built, three stubs), request matching and the Tier 3 shadow check.
+
+The conversation state machine comes next (Phase 3).
 
 ## Setup
 

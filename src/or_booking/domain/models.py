@@ -158,6 +158,7 @@ class Surgeon(Model):
     service: str
     privileges: list[str]  # procedure ids the surgeon is credentialed for
     office: Contact
+    runs_paired_rooms: bool = False  # works two rooms in parallel (e.g. cataract lists)
 
     @property
     def display_name(self) -> str:
@@ -412,6 +413,155 @@ class ReadinessItem(Model):
     item: str
     owner: str
     due: datetime | None = None
+    valid_from: date | None = None  # for a dated document: the earliest date that counts
     status: ReadinessStatus
     depends_on: list[str] = []
     detail: str = ""
+
+
+# ---------------------------------------------------------------------------
+# The request being worked: values with provenance, and what stops it qualifying
+# ---------------------------------------------------------------------------
+
+
+class FieldStatus(StrEnum):
+    PROPOSED = "proposed"  # as the model read it; not yet usable
+    RESOLVED = "resolved"  # checked by a lookup, the surgeon's order or validation
+    CONFIRMED = "confirmed"  # the coordinator approved it on the confirmation card
+
+
+class SourceKind(StrEnum):
+    """Where a stated value came from."""
+
+    COORDINATOR = "coordinator"
+    DOCUMENT = "document"
+    SURGEONS_ORDER = "surgeons_order"
+    PROCEDURE_MASTER = "procedure_master"
+
+
+class ResolvedBy(StrEnum):
+    LOOKUP = "lookup"
+    SURGEONS_ORDER = "surgeons_order"
+    VALIDATION = "validation"
+
+
+class FieldValue(Model):
+    """One field of a request, with where it came from and whether code has checked it.
+
+    The model can only create `proposed` values (`FieldValue.proposed`). Only the
+    validation step promotes one to `resolved`, setting `value` to its canonical form:
+    a record id for reference fields (surgeon, procedure, patient_name -> MRN), ISO
+    dates, or an enum value. This is flow guarantee 2 showing up in the data.
+    """
+
+    value: str
+    stated: str  # the words as written or said
+    status: FieldStatus
+    source: SourceKind
+    evidence: str = ""  # the exact snippet it came from
+    resolved_by: ResolvedBy | None = None
+    ref: str | None = None  # the record that resolved it (an order id, a document id...)
+
+    @classmethod
+    def proposed(cls, value: str, source: SourceKind, evidence: str = "", stated: str | None = None) -> FieldValue:
+        return cls(value=value, stated=stated or value, status=FieldStatus.PROPOSED, source=source, evidence=evidence)
+
+    def resolve(self, value: str, by: ResolvedBy, ref: str | None = None) -> FieldValue:
+        return self.model_copy(update={"value": value, "status": FieldStatus.RESOLVED, "resolved_by": by, "ref": ref})
+
+    @property
+    def is_resolved(self) -> bool:
+        return self.status is not FieldStatus.PROPOSED
+
+
+class CaseDraft(Model):
+    """The request being worked. Immutable: every change returns a new draft."""
+
+    request_id: str
+    channel: Channel
+    fields: dict[BookingField, FieldValue] = {}
+    stated_urgency: Literal["none", "urgent", "emergent"] = "none"
+    duration_override: CaseMinutes | None = None
+    loaner_first_time: bool | None = None  # whether the loaner set is new to the hospital, if known
+
+    def get(self, field: BookingField) -> FieldValue | None:
+        return self.fields.get(field)
+
+    def resolved(self, field: BookingField) -> str | None:
+        """The canonical value if code has checked it, else None. Requests are built only from these."""
+        fv = self.fields.get(field)
+        return fv.value if fv is not None and fv.is_resolved else None
+
+    def propose(self, field: BookingField, value: str, source: SourceKind, evidence: str = "") -> CaseDraft:
+        """The one way model output enters a draft: as a proposed value, replacing any earlier one."""
+        return self.set(field, FieldValue.proposed(value, source, evidence))
+
+    def set(self, field: BookingField, value: FieldValue) -> CaseDraft:
+        return self.model_copy(update={"fields": {**self.fields, field: value}})
+
+
+class IssueKind(StrEnum):
+    MISSING = "missing"
+    AMBIGUOUS = "ambiguous"
+    NOT_FOUND = "not_found"
+    INVALID = "invalid"  # stated, but not readable as a value of that field
+    CONFLICTS_WITH_ORDER = "conflicts_with_order"
+    NOT_PRIVILEGED = "not_privileged"
+    GATED = "gated"  # a hospital readiness rule blocks booking this close to surgery
+
+
+class Stage(StrEnum):
+    """Which request an issue blocks. Query issues are asked before booking issues."""
+
+    QUERY = "availability_query"
+    BOOKING = "booking_request"
+
+
+class Issue(Model):
+    """What stops a request from qualifying. Code picks which to raise; the model only phrases it.
+
+    Carries a count of candidates, never their details, so a question can't reveal
+    another patient's information.
+    """
+
+    field: BookingField
+    kind: IssueKind
+    stage: Stage
+    detail: str
+    candidate_count: int = 0
+    rule_id: str | None = None  # the hospital rule that requires the field, if any
+
+    @property
+    def hard(self) -> bool:
+        """A hard rule failure: no answer from the requester fixes it, so a person takes over."""
+        return self.kind is IssueKind.NOT_PRIVILEGED
+
+
+class OptionGroup(StrEnum):
+    """Presentation order (Section 5.6): own block first, then options that fit long, then typical-only."""
+
+    OWN_BLOCK = "own_block"
+    FITS_LONG = "fits_long"
+    FITS_TYPICAL_ONLY = "fits_typical_only"
+
+
+class RankedOption(Model):
+    """A `SlotOption` plus the agent's trade-off facts: what an option card shows."""
+
+    rank: int
+    option: SlotOption
+    group: OptionGroup
+    fits_typical: bool
+    fits_long: bool
+    overrun_minutes: int  # minutes past the window's end at the long length; 0 if it fits
+    counts_toward_block: bool  # own-block cases count toward the surgeon's block utilization
+    days_until_surgery: int
+    readiness_risks: list[str] = []
+
+
+class Unsupported(Model):
+    """A capability that is designed but stubbed. Routing policy decides who takes the request."""
+
+    capability: str
+    reason: str
+    would_need: list[str] = []

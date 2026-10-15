@@ -29,8 +29,8 @@ START, END = date(2025, 4, 1), date(2026, 9, 30)
 
 # (surgeon, procedure, cases, mean minutes, standard deviation)
 RANDOM_PAIRS = [
-    ("S-PATEL", "TKA", 6, 101, 12),
-    ("S-PATEL", "UKA-ROBOTIC", 3, 88, 10),  # < 5: sizing falls back to all surgeons
+    ("S-PATEL", "TKA", 3, 101, 12),  # < 5 for her, but Dr. Chen's 20: sizing pools all surgeons
+    ("S-PATEL", "UKA-ROBOTIC", 3, 88, 10),  # < 5 across all surgeons: falls back to the procedure default
     ("S-PATEL", "THA", 12, 96, 11),
     ("S-CHEN", "THA", 10, 106, 13),
     ("S-CHEN", "KNEE-SCOPE", 16, 46, 7),
