@@ -5,3 +5,4 @@ __pycache__/
 .import_linter_cache/
 var/
 .env
+.claude/

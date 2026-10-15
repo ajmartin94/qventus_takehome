@@ -19,7 +19,7 @@ It runs against a simulated hospital (Northwind Regional Medical Center), with C
 | Written notes on optimization and scalability | [docs/optimization_and_scalability.md](docs/optimization_and_scalability.md) |
 | Where AI assistants were used | [Where AI assistants were used](#where-ai-assistants-were-used), below |
 | Optional: multi-turn clarification | D1 (which patient), D6 (side conflicts with the surgeon's order), parked questions answered by a later fax |
-| Optional: RAG for policies | Designed ([notes §3](docs/optimization_and_scalability.md#3-retrieval-rag-and-vector-databases)); the `PolicyStore.search` port is a stub |
+| Optional: RAG for policies | Designed ([notes](docs/optimization_and_scalability.md#leverage-ragvector-databases-for-external-knowledge)); the `PolicyStore.search` port is a stub |
 
 Background: [problem statement](docs/problem_statement.md), [implementation plan](docs/implementation_plan.md), and the [research reports](docs/reports/).
 
@@ -65,14 +65,14 @@ Other commands:
 | | What happens | Ends in |
 |---|---|---|
 | [D1](docs/demo/d1_faxed_request.md) Faxed request ([live run](docs/demo/live/d1_faxed_request.md)) | The fax is read; two patients share the name, so the options come with a date-of-birth question; the coordinator answers and picks; confirmed and booked | Booked, readiness list handed off |
-| [D2](docs/demo/d2_other_owners_block.md) Other owner's block | The coordinator asks for Wednesday, in Dr. Ruiz's and Dr. Chen's unreleased blocks; the agent gives the release times and drafts release requests | Waitlisted |
-| [D3](docs/demo/d3_slot_taken.md) Slot taken | Another coordinator holds Tuesday between search and pick; the hold fails, the agent searches again and books Thursday; a retried commit and a double "confirm" create no duplicate | Booked, one case |
-| [D4](docs/demo/d4_urgent.md) Urgent | "Needs a room tonight" goes to the anesthesiologist in charge and the OR desk with a structured handoff | Routed out, nothing booked |
-| [D5](docs/demo/d5_clinical_question.md) Clinical question | "Is Maria Gomez fit for general anesthesia?" goes to the surgeon's office | Routed out, nothing booked |
-| [D6](docs/demo/d6_side_conflict.md) Side conflict | The email says left knee; the surgeon's order says right; the agent asks, the coordinator confirms right | Booked on the right side |
-| [D7](docs/demo/d7_cardiac_stub.md) Cardiac case | The ICU post-op destination selects OR-plus-ICU-bed booking, a stub, which routes to the coordinator | Routed out, nothing booked |
+| [D2](docs/demo/d2_other_owners_block.md) Other owner's block ([live run](docs/demo/live/d2_other_owners_block.md)) | The coordinator asks for Wednesday, in Dr. Ruiz's and Dr. Chen's unreleased blocks; the agent gives the release times and drafts release requests | Waitlisted |
+| [D3](docs/demo/d3_slot_taken.md) Slot taken ([live run](docs/demo/live/d3_slot_taken.md)) | Another coordinator holds Tuesday between search and pick; the hold fails, the agent searches again and books Thursday; a retried commit and a double "confirm" create no duplicate | Booked, one case |
+| [D4](docs/demo/d4_urgent.md) Urgent ([live run](docs/demo/live/d4_urgent.md)) | "Needs a room tonight" goes to the anesthesiologist in charge and the OR desk with a structured handoff | Routed out, nothing booked |
+| [D5](docs/demo/d5_clinical_question.md) Clinical question ([live run](docs/demo/live/d5_clinical_question.md)) | "Is Maria Gomez fit for general anesthesia?" goes to the surgeon's office | Routed out, nothing booked |
+| [D6](docs/demo/d6_side_conflict.md) Side conflict ([live run](docs/demo/live/d6_side_conflict.md)) | The email says left knee; the surgeon's order says right; the agent asks, the coordinator confirms right | Booked on the right side |
+| [D7](docs/demo/d7_cardiac_stub.md) Cardiac case ([live run](docs/demo/live/d7_cardiac_stub.md)) | The ICU post-op destination selects OR-plus-ICU-bed booking, a stub, which routes to the coordinator | Routed out, nothing booked |
 
-Each scenario is a YAML file in `scenarios/demo/` and a golden test. Each has also passed a live run with the real model.
+Each scenario is a YAML file in `scenarios/demo/` and a golden test. Each has also passed a live run with the real model; the live transcripts are in [docs/demo/live/](docs/demo/live/).
 
 ## Architecture in one page
 
@@ -236,14 +236,6 @@ The author chose the workflow and set the scope and principles:
 - the build order, with the eval suite last
 
 The author also made the decisions recorded in the plan and reviewed each phase. The simulated hospital (patients, surgeons, schedules, policies, faxes and emails) is synthetic and was written with AI; there is no real patient data.
-
-**In the product.** The agent calls Claude at the five points in the table above: extracting a document, interpreting a message, and phrasing a question, an options summary or an outcome. It never uses the model to decide anything.
-
-**To test it.** Replay runs use scripted model outputs, so they are deterministic and offline. The prompts were tuned against live runs; the fixes included:
-- questions avoid gendered pronouns
-- "no block" is read as a negation
-- relative dates resolve against today's date
-- an ambiguous date produces a question offering both readings
 
 ## Status
 
