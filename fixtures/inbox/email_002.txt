@@ -14,7 +14,7 @@ Anesthesia: spinal with MAC
 Patient class: outpatient
 Insurance: Lakeshore PPO, auth pending, ref LCP-88213
 Implants: knee system, rep attending
-Timing: first week of November if possible, Dr. Chen prefers his own block time
+Timing: first week of November if possible, in Dr. Chen's block time
 
 H&P was done 10/1 and is in the chart.
 

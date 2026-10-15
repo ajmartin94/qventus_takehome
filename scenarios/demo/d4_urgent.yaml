@@ -1,0 +1,27 @@
+id: demo-04-urgent
+title: "\"This needs a room tonight\": urgent requests go to the anesthesiologist in charge and the OR desk"
+clock: 2026-10-14T09:00:00
+
+input:
+  channel: chat
+  message: "Dr. Mehta needs a room tonight for James Whitaker, DOB 6/21/1979, right tibial shaft fracture, IM nail."
+
+scripted_interpretations:
+  - intent: urgent_request
+    stated_urgency: urgent
+    mentions:
+      - {field: surgeon,      value: "Dr. Mehta",       evidence: "Dr. Mehta"}
+      - {field: patient_name, value: "James Whitaker",  evidence: "James Whitaker"}
+      - {field: patient_dob,  value: "1979-06-21",      evidence: "DOB 6/21/1979"}
+      - {field: procedure,    value: "IM nail tibia",   evidence: "tibial shaft fracture, IM nail"}
+      - {field: laterality,   value: "right",           evidence: "right tibial shaft fracture"}
+      - {field: date_window,  value: "2026-10-14",      evidence: "tonight"}
+
+expect:
+  final_state: RoutedOut
+  path_includes: [Intake, Matching, RoutedOut]
+  path_excludes: [Collecting, Searching, Holding]
+  route_to: [anesthesiologist_in_charge, or_desk]
+  drafts_to: [anesthesiologist_in_charge, or_desk]
+  replies_include: ["add_ons_and_urgent_cases.md#urgent-and-emergent-cases", "Nothing was booked"]
+  never: [booked]

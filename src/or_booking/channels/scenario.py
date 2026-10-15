@@ -42,7 +42,18 @@ class Expectations(_Strict):
     readiness_items: list[str] | None = None
     route_to: list[str] | None = None
     drafts_to: list[str] | None = None
+    replies_include: list[str] = []  # text the code produces (not model prose), somewhere in the agent's replies
+    asked_about: list[str] = []  # "field/kind" of each question the code chose to ask, in order (wording may vary)
+    booked_cases_for_patient: int | None = None
     never: list[str] = []
+
+
+class Injection(_Strict):
+    """Something that happens in the world between turns."""
+
+    after_turn: int  # 0: after the opening input; 1: after the first coordinator turn; ...
+    action: Literal["take_slot", "retry_commit"]
+    option: int = 1  # take_slot: which option on screen another coordinator takes
 
 
 class Scenario(_Strict):
@@ -51,15 +62,16 @@ class Scenario(_Strict):
     clock: datetime
     input: ScenarioInput
     coordinator_turns: list[str] = []
+    inject: list[Injection] = []
     scripted_extraction: dict[str, Any] | None = None
     scripted_interpretations: list[dict[str, Any]] = []
     expect: Expectations
 
 
 class TurnRecord(BaseModel):
-    speaker: str
+    speaker: str  # inbox, coordinator, or simulation (an injected event)
     text: str
-    result: TurnResult
+    result: TurnResult | None = None
 
 
 class ScenarioRun(BaseModel):
@@ -133,18 +145,38 @@ def run_scenario(scenario: Scenario, *, live: bool = False, config_path: Path | 
         turns.append(TurnRecord(speaker="coordinator", text=scenario.input.message, result=result))
     else:
         raise ValueError(f"scenario {scenario.id} has no input document or message")
-    for text in scenario.coordinator_turns:
-        result = agent.reply(result.request_id, text)
-        turns.append(TurnRecord(speaker="coordinator", text=text, result=result))
+    failures: list[str] = []
+    for index, text in enumerate(["", *scenario.coordinator_turns]):
+        if index:
+            result = agent.reply(result.request_id, text)
+            turns.append(TurnRecord(speaker="coordinator", text=text, result=result))
+        for injection in (i for i in scenario.inject if i.after_turn == index):
+            note, problem = _inject(injection, agent.session(result.request_id), services)
+            turns.append(TurnRecord(speaker="simulation", text=note))
+            failures += [problem] if problem else []
 
     session = agent.session(result.request_id)
     audit = services.audit_log.entries()
-    return ScenarioRun(
-        scenario=scenario, turns=turns, session=session, audit=audit, failures=grade(scenario.expect, session, agent, services)
-    )
+    failures += grade(scenario.expect, session, agent, services, turns)
+    return ScenarioRun(scenario=scenario, turns=turns, session=session, audit=audit, failures=failures)
 
 
-def grade(expect: Expectations, session: Session, agent: Orchestrator, services: Services) -> list[str]:
+def _inject(injection: Injection, session: Session, services: Services) -> tuple[str, str | None]:
+    """Apply a world event. Returns what happened, and a failure if the system misbehaved."""
+    if injection.action == "take_slot":
+        option = session.ranked[injection.option - 1].option
+        hold = services.scheduling.place_hold(option.option_id, "ANOTHER-COORDINATOR")
+        return f"Another coordinator holds option {injection.option} ({option.option_id}) first: hold {hold.hold_id}.", None
+    # retry_commit: the same booking request sent again, as a network retry would
+    request = session.booking_request
+    if request is None or session.case_id is None:
+        return "Retry skipped: nothing was committed.", "retry_commit injected before anything was booked"
+    again = services.scheduling.confirm_booking("H-RETRY", request)
+    note = f"Commit retried with idempotency key {request.idempotency_key}: the service returned {again.case_id}."
+    return note, None if again.case_id == session.case_id else f"retried commit created {again.case_id}, not {session.case_id}"
+
+
+def grade(expect: Expectations, session: Session, agent: Orchestrator, services: Services, turns: list[TurnRecord] | None = None) -> list[str]:
     failures: list[str] = []
     path = [s.value for s in session.path]
     if session.state.value != expect.final_state:
@@ -180,6 +212,19 @@ def grade(expect: Expectations, session: Session, agent: Orchestrator, services:
         roles = [d.message.recipient_role for d in services.outbox.drafts(session.request_id)]
         if roles != expect.drafts_to:
             failures.append(f"drafts to {roles}, expected {expect.drafts_to}")
+    replies = "\n".join(
+        t.result.reply.message + "".join(c.model_dump_json() for c in t.result.reply.cards) for t in turns or [] if t.result
+    )
+    failures += [f"no reply says {text!r}" for text in expect.replies_include if text not in replies]
+    if expect.asked_about:
+        asked = [f"{e.detail['field']}/{e.detail['kind']}" for e in services.audit_log.entries(session.request_id) if e.name == "clarify"]
+        if asked != expect.asked_about:
+            failures.append(f"asked about {asked}, expected {expect.asked_about}")
+    if expect.booked_cases_for_patient is not None:
+        mrn = case.patient_mrn if case else session.draft.resolved(BookingField.PATIENT_NAME)
+        booked = [c for c in services.scheduling.find_cases(patient_mrn=mrn) if c.status.value == "booked"] if mrn else []
+        if len(booked) != expect.booked_cases_for_patient:
+            failures.append(f"{len(booked)} booked cases for patient {mrn}, expected {expect.booked_cases_for_patient}")
     for rule in expect.never:
         failures += _never(rule, session, path, case, services)
     return failures

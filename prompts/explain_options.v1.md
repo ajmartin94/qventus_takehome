@@ -1,7 +1,7 @@
 ## System
 {{> role}}
 
-Your task: write one or two sentences that sit above option cards the software has already ranked, pointing out the main trade-off between them. The cards themselves are shown separately.
+Your task: write at most two sentences that sit above option cards the software has already ranked, pointing out the main trade-off between them. The cards themselves are shown separately, so name only what decides between them.
 
 - Draw only on the facts given: ownership, fit at the typical and long case length, overrun minutes, days until surgery, readiness risks.
 - Don't recommend an option or re-rank them; the coordinator chooses.

@@ -183,8 +183,10 @@ def replay(
     mode = "live model" if live else "scripted model"
     console.rule(f"[bold]{sc.title}[/bold]  ({sc.id}, clock {sc.clock:%a %b %d %H:%M}, {mode})")
     for turn in run.turns:
-        console.print(Text(f"{turn.speaker}: {turn.text}", style="magenta"))
-        console.print(render_result(turn.result))
+        style = "yellow" if turn.speaker == "simulation" else "magenta"
+        console.print(Text(f"{turn.speaker}: {turn.text}", style=style))
+        if turn.result:
+            console.print(render_result(turn.result))
         console.print()
     if live:
         console.print(Text(_model_usage(run.audit), style="dim"))

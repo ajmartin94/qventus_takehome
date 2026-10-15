@@ -8,15 +8,30 @@ Prototype for the Qventus AI Solution Architect challenge. The agent turns OR ca
 
 ## Status
 
-Built through Phase 4 of the [build order](docs/implementation_plan.md#71-phases):
+Built through Phase 5 of the [build order](docs/implementation_plan.md#71-phases):
 
 - **Phase 0, skeleton:** ports, composition root, audit, layering check.
 - **Phase 1, simulated hospital:** Northwind fixtures and the mock scheduling system.
 - **Phase 2, domain core** (`src/or_booking/domain/`): policy evaluation for the four rule types, qualification of the availability query and the booking request, sizing, ranking, readiness with business days, booking strategies (standard built, three stubs), request matching and the Tier 3 shadow check.
 - **Phase 3, orchestrator in replay mode** (`src/or_booking/orchestrator/`, `src/or_booking/interpretation/`): the conversation state machine, with one handler per state; the transition table, which also generates the documented state diagram; sessions; policy routing; cards; versioned prompts; a scripted model for offline replay; and scenario replay from the CLI.
 - **Phase 4, the real model** (`src/or_booking/adapters/llm_anthropic.py`): Claude Opus 5.5 through the Anthropic SDK, with schema-constrained structured outputs, effort set per prompt, cached system prompts, refusal and stop-reason handling, and server-side refusal fallbacks. The prompts were tuned against live runs. D1 runs end to end with the real model reading the fax.
+- **Phase 5, alternate and failure paths** (`scenarios/demo/`): six more scenarios, listed below. Each one replays offline as a golden test and has passed one live run.
 
-Alternate and failure-path scenarios come next (Phase 5).
+The write-up and static visuals come next (Phase 6).
+
+## Demo scenarios
+
+| Scenario | What happens | Ends in |
+|---|---|---|
+| `d1` Faxed request | The fax is read; two patients share the name, so the options come with a date-of-birth question; the coordinator answers and picks; the case is confirmed and booked | Booked, readiness list handed off |
+| `d2` Other owner's block | The coordinator asks for Wednesday, which sits in Dr. Ruiz's and Dr. Chen's unreleased blocks; the agent gives the release times and drafts release requests | Waitlisted |
+| `d3` Slot taken | Another coordinator holds Tuesday between search and pick; the hold fails, the agent searches again and books Thursday; a retried commit and a double "confirm" create no duplicate | Booked, one case |
+| `d4` Urgent | "Needs a room tonight" goes to the anesthesiologist in charge and the OR desk with a structured handoff | Routed out, nothing booked |
+| `d5` Clinical question | "Is Maria Gomez fit for general anesthesia?" goes to the surgeon's office | Routed out, nothing booked |
+| `d6` Side conflict | The email says left knee; the surgeon's order says right; the agent asks, the coordinator confirms right | Booked on the right side |
+| `d7` Cardiac case | The ICU post-op destination selects OR-plus-ICU-bed booking, a stub, which routes to the coordinator | Routed out, nothing booked |
+
+Each runs with `or-booking replay <name>` offline, or with `--live` against the real model.
 
 ## Setup
 
@@ -77,7 +92,7 @@ Look at the simulated hospital directly:
 .venv/Scripts/python -m pytest
 ```
 
-The suite runs offline. Tests that call the real model are marked `live` and run only when asked for:
+The suite runs offline. Tests that call the real model are marked `live` and run only when asked for (all seven demo scenarios, about $0.50):
 
 ```bash
 OR_BOOKING_LIVE=1 .venv/Scripts/python -m pytest -m live

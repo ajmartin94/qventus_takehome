@@ -571,6 +571,7 @@ class Handlers:
             self.route(s, situation, f"Asked {limit} times without an answer that resolves it: {issue.detail}")
             return Go(State.HANDED_OFF)
         s.open_question = issue
+        self.decide(s, "clarify", {"field": issue.field.value, "kind": issue.kind.value, "detail": issue.detail, "attempt": s.attempts[key]})
         stated = s.draft.get(issue.field)
         facts = {"field": issue.field.value, "kind": issue.kind.value, "detail": issue.detail, "candidate_count": issue.candidate_count,
                  "stated": stated.stated if stated else None, "reader_notes": s.reader_notes}  # fmt: skip

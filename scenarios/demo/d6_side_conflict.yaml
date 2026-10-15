@@ -1,0 +1,48 @@
+id: demo-06-side-conflict
+title: The email says left knee; the surgeon's order says right
+clock: 2026-10-14T09:00:00
+
+input:
+  channel: email
+  document: email_002        # fixtures/inbox/email_002.txt
+  interactive: true
+
+coordinator_turns:
+  - "Take option 1"
+  - "The order is right. The office confirmed it's the right knee."
+  - "confirm"
+
+scripted_extraction:
+  channel: email
+  intent: new_request
+  mentions:
+    - {field: surgeon,         value: "Dr. Chen",                     evidence: "Please schedule the following for Dr. Chen:"}
+    - {field: patient_name,    value: "John Carter",                  evidence: "Patient: John Carter, DOB 11/02/1962"}
+    - {field: patient_dob,     value: "1962-11-02",                   evidence: "DOB 11/02/1962"}
+    - {field: procedure,       value: "Total knee arthroplasty",      evidence: "Procedure: Total knee arthroplasty, LEFT knee"}
+    - {field: laterality,      value: "left",                         evidence: "LEFT knee"}
+    - {field: diagnosis,       value: "primary OA",                   evidence: "Diagnosis: primary OA"}
+    - {field: anesthesia_type, value: "regional",                     evidence: "Anesthesia: spinal with MAC"}
+    - {field: patient_class,   value: "outpatient",                   evidence: "Patient class: outpatient"}
+    - {field: authorization,   value: "pending, ref LCP-88213",       evidence: "Insurance: Lakeshore PPO, auth pending, ref LCP-88213"}
+    - {field: implants,        value: "knee system, rep attending",   evidence: "Implants: knee system, rep attending"}
+    - {field: date_window,     value: "2026-11-02/2026-11-06",        evidence: "Timing: first week of November if possible"}
+    - {field: preferences,     value: "in Dr. Chen's block time",     evidence: "in Dr. Chen's block time"}
+  sender: {name: "Tasha Monroe, Lakeview Sports & Joint", phone: "555-0152", fax: "555-0153", email: "scheduling@lakeviewsportsjoint.example"}
+
+scripted_interpretations:
+  - {intent: select_option, select_option: 1}
+  - intent: correct
+    corrections:
+      - {field: laterality, value: "right", evidence: "it's the right knee"}
+  - {intent: confirm}
+
+expect:
+  final_state: Booked
+  path_includes: [Presenting, Holding, Completing, Clarifying, Completing, Confirming, Committing, Booked]
+  asked_about: [laterality/conflicts_with_order]   # asked once, then resolved; never guessed
+  replies_include:
+    - "On file is dated Oct 01, before Oct 03"     # the H&P on file is too old for a Nov 2 surgery
+  case: {surgeon: S-CHEN, procedure: TKA, laterality: right, room: OR-3, date: 2026-11-02, start: "12:15", patient_mrn: "100412", status: booked}
+  booked_cases_for_patient: 1
+  never: [commit_without_confirmation, identifier_not_from_lookup, booking_violates_hard_rule]

@@ -1,0 +1,22 @@
+id: demo-05-clinical-question
+title: A clinical question goes to the surgeon's office, not the scheduling agent
+clock: 2026-10-14T09:00:00
+
+input:
+  channel: chat
+  message: "Is Maria Gomez fit for general anesthesia? DOB 3/12/1958."
+
+scripted_interpretations:
+  - intent: clinical_question
+    mentions:
+      - {field: patient_name, value: "Maria Gomez", evidence: "Maria Gomez"}
+      - {field: patient_dob,  value: "1958-03-12",  evidence: "DOB 3/12/1958"}
+
+expect:
+  final_state: RoutedOut
+  path_includes: [Intake, Matching, RoutedOut]
+  path_excludes: [Collecting, Searching]
+  route_to: [surgeons_office]
+  drafts_to: [surgeons_office]
+  replies_include: ["decline_and_route", "preop_readiness.md#clinical-questions", "Is Maria Gomez fit for general anesthesia?"]
+  never: [booked]

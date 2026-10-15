@@ -1,0 +1,42 @@
+id: demo-02-other-owners-block
+title: The coordinator wants Wednesday, which sits in other owners' unreleased blocks
+clock: 2026-10-14T09:00:00
+
+input:
+  channel: chat
+  message: >-
+    Book a robotic right TKA for Maria Gomez, DOB 3/12/1958, with Dr. Patel, week of 11/2.
+    OA right knee, general with a nerve block, outpatient, loaner knee set with rep.
+
+coordinator_turns:
+  - "Can we do Wednesday instead?"
+  - "Waitlist it for Wednesday"
+
+# Replay mode only: what the model reads from each coordinator message, in order.
+scripted_interpretations:
+  - intent: new_request
+    mentions:
+      - {field: surgeon,         value: "Dr. Patel",                  evidence: "with Dr. Patel"}
+      - {field: procedure,       value: "robotic TKA",                evidence: "robotic right TKA"}
+      - {field: laterality,      value: "right",                      evidence: "right TKA"}
+      - {field: patient_name,    value: "Maria Gomez",                evidence: "Maria Gomez"}
+      - {field: patient_dob,     value: "1958-03-12",                 evidence: "DOB 3/12/1958"}
+      - {field: date_window,     value: "2026-11-02/2026-11-06",      evidence: "week of 11/2"}
+      - {field: diagnosis,       value: "OA right knee",              evidence: "OA right knee"}
+      - {field: anesthesia_type, value: "general_with_nerve_block",   evidence: "general with a nerve block"}
+      - {field: patient_class,   value: "outpatient",                 evidence: "outpatient"}
+      - {field: implants,        value: "loaner knee set with rep",   evidence: "loaner knee set with rep"}
+  - {intent: request_release, slots: {date_window: 2026-11-04}}
+  - {intent: request_waitlist}
+
+expect:
+  final_state: Waitlisted
+  path_includes: [Intake, Matching, Collecting, Searching, Presenting, Waitlisted]
+  path_excludes: [Holding, Committing]
+  replies_include:
+    - "OR-6 is Dr. Elena Ruiz's block, releases Wed Oct 21 07:00"
+    - "OR-5 is Dr. Marcus Chen's block, releases Wed Oct 28 07:00"
+    - "drafted a release request"
+  drafts_to: [block_owner, block_owner]
+  booked_cases_for_patient: 0
+  never: [booked]

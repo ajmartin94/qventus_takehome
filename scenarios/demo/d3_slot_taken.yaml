@@ -1,0 +1,45 @@
+id: demo-03-slot-taken
+title: Another coordinator takes the slot between search and pick
+clock: 2026-10-14T09:00:00
+
+input:
+  channel: chat
+  message: >-
+    Book a robotic right TKA for Maria Gomez, DOB 3/12/1958, with Dr. Patel, week of 11/2.
+    OA right knee, general with a nerve block, outpatient, loaner knee set with rep.
+
+coordinator_turns:
+  - "Take Tuesday"
+  - "Then take the first one"
+  - "confirm"
+  - "confirm"            # sent twice, as an impatient double-submit would
+
+inject:
+  - {after_turn: 0, action: take_slot, option: 1}   # someone else holds Tuesday while the options are on screen
+  - {after_turn: 3, action: retry_commit}            # the commit is retried, as after a network timeout
+
+scripted_interpretations:
+  - intent: new_request
+    mentions:
+      - {field: surgeon,         value: "Dr. Patel",                  evidence: "with Dr. Patel"}
+      - {field: procedure,       value: "robotic TKA",                evidence: "robotic right TKA"}
+      - {field: laterality,      value: "right",                      evidence: "right TKA"}
+      - {field: patient_name,    value: "Maria Gomez",                evidence: "Maria Gomez"}
+      - {field: patient_dob,     value: "1958-03-12",                 evidence: "DOB 3/12/1958"}
+      - {field: date_window,     value: "2026-11-02/2026-11-06",      evidence: "week of 11/2"}
+      - {field: diagnosis,       value: "OA right knee",              evidence: "OA right knee"}
+      - {field: anesthesia_type, value: "general_with_nerve_block",   evidence: "general with a nerve block"}
+      - {field: patient_class,   value: "outpatient",                 evidence: "outpatient"}
+      - {field: implants,        value: "loaner knee set with rep",   evidence: "loaner knee set with rep"}
+  - {intent: select_option, select_option: 1}
+  - {intent: select_option, select_option: 1}
+  - {intent: confirm}
+  # the second "confirm" reaches a finished request, so the model isn't asked
+
+expect:
+  final_state: Booked
+  path_includes: [Presenting, Holding, Searching, Presenting, Holding, Completing, Confirming, Committing, Booked]
+  replies_include: ["SLOT_TAKEN", "it isn't waiting for input"]
+  case: {surgeon: S-PATEL, procedure: TKA-ROBOTIC, laterality: right, room: OR-6, date: 2026-11-05, start: "07:30", patient_mrn: "100231", status: booked}
+  booked_cases_for_patient: 1
+  never: [commit_without_confirmation, identifier_not_from_lookup, booking_violates_hard_rule]
