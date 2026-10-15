@@ -1,0 +1,28 @@
+10/14/2026 08:12   FROM: 555-0143  NORTHWIND ORTHO ASSOC        TO: 555-0100   P.001/001
+------------------------------------------------------------------------------------
+
+                    NORTHWIND ORTHOPEDIC ASSOCIATES
+                 Priya Patel, MD  -  Raj Mehta, MD
+            2200 Lakeshore Dr, Suite 310  |  Ph 555-0142  Fax 555-0143
+
+  TO:    NRMC Surgical Scheduling
+  RE:    SURGERY SCHEDULING REQUEST
+
+  Surgeon:       Dr. Priya Patel
+  Patient:       Maria Gomez
+  DOB:
+  Procedure:     Robotic R TKA
+  Dx:            OA right knee
+  Anesthesia:    General + nerve block
+  Pt class:      Outpatient
+  Insurance:     Medicare Advantage - auth pending
+  Equipment:     Loaner knee set, rep to attend
+  H&P:           to follow
+  Requested:     Week of 11/2 preferred
+
+  Contact:       Dana Whitfield, surgical coordinator
+                 Ph 555-0142   Fax 555-0143
+
+------------------------------------------------------------------------------------
+CONFIDENTIALITY NOTICE: This facsimile contains information intended only for the
+addressee. If you received it in error, notify the sender and destroy all copies.

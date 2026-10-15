@@ -1,0 +1,11 @@
+# Rooms, their capabilities and turnover (minutes from one case out to the next case in).
+# Robot-ready rooms use 30 minutes for the demo; two studies observed 67-72 minutes for
+# robotic rooms, a value each site should confirm.
+- {id: OR-1, type: general,              capabilities: [general, c_arm_ready],                            turnover_minutes: 30}
+- {id: OR-2, type: general,              capabilities: [general, c_arm_ready],                            turnover_minutes: 30}
+- {id: OR-3, type: orthopedic,           capabilities: [general, laminar_flow, c_arm_ready],              turnover_minutes: 30}
+- {id: OR-4, type: orthopedic,           capabilities: [general, laminar_flow, c_arm_ready],              turnover_minutes: 30}
+- {id: OR-5, type: robot_ready,          capabilities: [general, laminar_flow, robot_ready, c_arm_ready], turnover_minutes: 30}
+- {id: OR-6, type: robot_ready,          capabilities: [general, laminar_flow, robot_ready, c_arm_ready], turnover_minutes: 30}
+- {id: OR-7, type: cardiac_hybrid,       capabilities: [perfusion, hybrid_imaging],                       turnover_minutes: 45}
+- {id: OR-8, type: minor_ophthalmology,  capabilities: [microscope],                                      turnover_minutes: 15}

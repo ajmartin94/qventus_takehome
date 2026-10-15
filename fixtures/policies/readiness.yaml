@@ -1,0 +1,52 @@
+# Northwind Regional Medical Center: readiness requirements.
+# What must be in place before surgery, who owns it and when it's due. Created at booking
+# and handed to downstream follow-up. Business days are Monday to Friday.
+
+- id: h_and_p
+  item: History and physical dated within 30 days of surgery
+  owner: Surgeon's office
+  dated_by: patient.h_and_p_date
+  valid_within: {days: 30}
+  source: preop_readiness.md#history-and-physical
+
+- id: prior_authorization
+  item: Prior authorization submitted to the payer
+  owner: Surgeon's office
+  applies_when: {procedure.prior_auth: required, payer.prior_auth: required}
+  # Submitted early enough for the payer's standard decision to land before financial clearance.
+  due: {before_item: financial_clearance, lead_time_fact: payer.decision_clock.standard_days}
+  done_when: {authorization.status: [pending, approved]}
+  gates_booking:
+    within_days_of_surgery: 14
+    satisfied_when: {authorization.status: [pending, approved], authorization.has_number: true}
+  source: preop_readiness.md#authorization
+
+- id: financial_clearance
+  item: Financial clearance
+  owner: Patient financial services
+  due: {before_surgery: {business_days: 1}, at: "12:00"}
+  depends_on: [prior_authorization]
+  source: preop_readiness.md#financial-clearance
+
+- id: chart_complete
+  item: Chart complete (H&P, consents, orders)
+  owner: Surgeon's office
+  due: {before_surgery: {hours: 72}}
+  depends_on: [h_and_p]
+  source: preop_readiness.md#chart-complete
+
+- id: loaner_set_in_spd
+  item: Loaner implant set delivered to sterile processing
+  owner: Implant vendor
+  applies_when: {procedure.loaner_set: true}
+  due: {before_surgery: {hours: 48}}
+  variants:
+    - applies_when: {loaner_set.first_time: true}
+      due: {before_surgery: {business_days: 3}}
+  source: implants_and_loaner_sets.md#loaner-sets
+
+- id: vendor_rep
+  item: Vendor representative scheduled
+  owner: Implant vendor
+  applies_when: {procedure.rep_attends: true}
+  source: implants_and_loaner_sets.md#vendor-representatives

@@ -1,0 +1,26 @@
+# Northwind Regional Medical Center: required booking data.
+# Everything a booking request must carry before the confirmation card is shown.
+# Field names are the agent's BookingField vocabulary. Prose: preop_readiness.md.
+
+- id: patient_identity
+  description: Patient identified by two identifiers, name and date of birth
+  require: [patient_name, patient_dob]
+  source: preop_readiness.md#booking-data
+
+- id: case_basics
+  description: Diagnosis, anesthesia type and patient class on every case
+  require: [diagnosis, anesthesia_type, patient_class]
+  source: preop_readiness.md#booking-data
+
+- id: laterality_stated
+  description: Side spelled out when the procedure has one, and consistent with the surgeon's order
+  applies_when: {procedure.laterality: required}
+  require: [laterality]
+  must_match_order: true
+  source: preop_readiness.md#booking-data
+
+- id: implants_recorded
+  description: Implant system, loaner set and vendor representative recorded when the procedure uses implants
+  applies_when: {procedure.has_implant: true}
+  require: [implants]
+  source: implants_and_loaner_sets.md#at-booking

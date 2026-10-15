@@ -1,0 +1,23 @@
+From: Dana Whitfield <dwhitfield@northwindortho.example>
+To: NRMC Surgical Scheduling <orscheduling@northwind-rmc.example>
+Date: Wed, 14 Oct 2026 08:57
+Subject: THA booking request - Rahman
+
+Hi,
+
+Requesting a left total hip for Dr. Patel.
+
+Patient: Aisha Rahman
+Procedure: L THA
+Dx: OA left hip
+Anesthesia: general
+Class: extended recovery (overnight)
+Insurance: traditional Medicare
+Implants: hip system, loaner set, rep to attend
+Dates: week of 11/2, any day Dr. Patel has time
+
+Will send H&P once completed.
+
+Dana Whitfield
+Northwind Orthopedic Associates
+555-0142

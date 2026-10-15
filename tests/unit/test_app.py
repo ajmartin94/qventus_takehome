@@ -75,3 +75,14 @@ def test_cli_starts() -> None:
     result = CliRunner().invoke(cli_app, ["ports"])
     assert result.exit_code == 0, result.output
     assert "scheduling" in result.output
+
+
+def test_cli_shows_d1_availability_and_the_schedule() -> None:
+    runner = CliRunner()
+    availability = runner.invoke(cli_app, ["availability"], env={"COLUMNS": "200"})
+    assert availability.exit_code == 0, availability.output
+    assert "OPT-OR5-20261103-1300" in availability.output and "releases Oct 21 07:00" in availability.output
+    refused = runner.invoke(cli_app, ["availability", "--surgeon", "S-CHEN"])
+    assert refused.exit_code == 1 and "NOT_PRIVILEGED" in refused.output
+    schedule = runner.invoke(cli_app, ["schedule"], env={"COLUMNS": "200"})
+    assert schedule.exit_code == 0 and "TKA-ROBOTIC" in schedule.output

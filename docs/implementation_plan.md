@@ -495,7 +495,7 @@ Only the rooms the scenarios use are shown. OR-1, OR-2 and OR-4 carry filler blo
 |---|---|---|---|---|---|
 | OR-3 | Chen | Ortho group (filler) | Open | Patel | Ortho group (filler) |
 | OR-5 | Okafor (robotic) | **Patel (robotic)**: booked 07:30–12:30, **free 13:00–15:30** | Chen (standard) | Okafor (robotic) | Chen: booked 07:30–11:30, **afternoon released, free 12:00–15:30** |
-| OR-6 | GYN group (robotic filler) | GYN group (robotic filler) | **Ruiz (robotic)**: booked 07:30–11:00 | **Open time: free 07:30–11:30**, booked 12:00–15:00 | GYN group (robotic filler) |
+| OR-6 | GYN group (robotic filler) | GYN group (robotic filler) | **Ruiz (robotic)**: booked 07:30–11:00 | **Open time: free 07:30–11:30**, booked 11:30–15:00 | GYN group (robotic filler) |
 | OR-7 | Cardiac group (filler) | Lee | Cardiac group (filler) | Lee | Cardiac group (filler) |
 | OR-8 | Filler | Filler | Filler | Filler | Alvarez |
 
@@ -609,7 +609,7 @@ For D1's booking (Tue Nov 3, 13:00) these rules produce the readiness list:
 
 The eval set's generated documents live with their scenarios in `scenarios/generated/`, not here.
 
-**Policies.** Four structured files (booking, readiness, routing, autonomy) are what the agent enforces. Beside them, five short prose documents (block release, add-ons and urgent cases, robotic rooms, implants and loaner sets, pre-op readiness) say the same things the way a hospital writes them, so the agent can cite them. Keeping the two in step is the hospital's job; in a real deployment, the reviewed extraction at onboarding is where they get reconciled.
+**Policies.** Four structured files (booking, readiness, routing, autonomy) are what the agent enforces. Beside them, five short prose documents (block release, add-ons and urgent cases, rooms and equipment, implants and loaner sets, pre-op readiness) say the same things the way a hospital writes them, so the agent can cite them. Keeping the two in step is the hospital's job; in a real deployment, the reviewed extraction at onboarding is where they get reconciled.
 
 **Scenario overlays.** A scenario can change the world in memory without touching fixture files:
 - `clock`: D9 runs at 06:30 on the morning of surgery, Tue Nov 3, not Oct 14.

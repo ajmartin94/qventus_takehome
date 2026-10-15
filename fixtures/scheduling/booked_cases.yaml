@@ -1,0 +1,35 @@
+# Cases already on the schedule for the target week (Mon Nov 2 - Fri Nov 6).
+#
+# Simulation shortcut: through `schedule_filled_through`, every room is treated as
+# fully booked, standing in for the weeks of real cases a live schedule would hold.
+schedule_filled_through: 2026-10-30
+
+cases:
+  # Mon Nov 2
+  - {case_id: C-4410, surgeon_id: S-CHEN,   procedure_id: TKA,             room_id: OR-3, date: 2026-11-02, start: "07:30", end: "09:15", laterality: right}
+  - {case_id: C-4411, surgeon_id: S-CHEN,   procedure_id: THA,             room_id: OR-3, date: 2026-11-02, start: "09:45", end: "11:45", laterality: left}
+  - {case_id: C-4412, surgeon_id: S-OKAFOR, procedure_id: HERNIA-ROBOTIC,  room_id: OR-5, date: 2026-11-02, start: "07:30", end: "10:00", assets: [SOFT-ROBOT-1]}
+  - {case_id: C-4413, surgeon_id: S-OKAFOR, procedure_id: HERNIA-ROBOTIC,  room_id: OR-5, date: 2026-11-02, start: "10:30", end: "13:00", assets: [SOFT-ROBOT-1]}
+  - {case_id: C-4414, surgeon_id: S-OKAFOR, procedure_id: LAP-CHOLE,       room_id: OR-5, date: 2026-11-02, start: "13:30", end: "15:00"}
+
+  # Tue Nov 3. C-4417 is Grace Liu's robotic left knee (scenario D9 bumps it).
+  - {case_id: C-4417, surgeon_id: S-PATEL,  procedure_id: TKA-ROBOTIC,     room_id: OR-5, date: 2026-11-03, start: "07:30", end: "09:50", laterality: left, patient_mrn: "100856", assets: [ORTHO-ROBOT-1]}
+  - {case_id: C-4418, surgeon_id: S-PATEL,  procedure_id: UKA-ROBOTIC,     room_id: OR-5, date: 2026-11-03, start: "10:20", end: "12:30", laterality: right, assets: [ORTHO-ROBOT-1]}
+  - {case_id: C-4419, surgeon_id: S-LEE,    procedure_id: CABG,            room_id: OR-7, date: 2026-11-03, start: "07:30", end: "12:30"}
+
+  # Wed Nov 4
+  - {case_id: C-4420, surgeon_id: S-CHEN,   procedure_id: TKA,             room_id: OR-5, date: 2026-11-04, start: "07:30", end: "09:15", laterality: left}
+  - {case_id: C-4421, surgeon_id: S-CHEN,   procedure_id: KNEE-SCOPE,      room_id: OR-5, date: 2026-11-04, start: "09:45", end: "11:00", laterality: right}
+  - {case_id: C-4422, surgeon_id: S-RUIZ,   procedure_id: PROSTATECTOMY-ROBOTIC, room_id: OR-6, date: 2026-11-04, start: "07:30", end: "11:00", assets: [SOFT-ROBOT-1]}
+
+  # Thu Nov 5
+  - {case_id: C-4430, surgeon_id: S-PATEL,  procedure_id: THA,             room_id: OR-3, date: 2026-11-05, start: "07:30", end: "09:30", laterality: right}
+  - {case_id: C-4431, surgeon_id: S-OKAFOR, procedure_id: HERNIA-ROBOTIC,  room_id: OR-5, date: 2026-11-05, start: "07:30", end: "10:00", assets: [SOFT-ROBOT-1]}
+  - {case_id: C-4432, surgeon_id: S-OKAFOR, procedure_id: HERNIA-ROBOTIC,  room_id: OR-5, date: 2026-11-05, start: "10:30", end: "13:00", assets: [SOFT-ROBOT-1]}
+  - {case_id: C-4433, surgeon_id: S-OKAFOR, procedure_id: LAP-CHOLE,       room_id: OR-5, date: 2026-11-05, start: "13:30", end: "15:00"}
+  - {case_id: C-4434, surgeon_id: S-RUIZ,   procedure_id: PROSTATECTOMY-ROBOTIC, room_id: OR-6, date: 2026-11-05, start: "11:30", end: "15:00", assets: [SOFT-ROBOT-2]}
+  - {case_id: C-4435, surgeon_id: S-LEE,    procedure_id: CABG,            room_id: OR-7, date: 2026-11-05, start: "07:30", end: "12:30"}
+
+  # Fri Nov 6. Dr. Chen's afternoon is released (blocks.yaml, early_releases).
+  - {case_id: C-4440, surgeon_id: S-CHEN,   procedure_id: TKA,             room_id: OR-5, date: 2026-11-06, start: "07:30", end: "09:15", laterality: right}
+  - {case_id: C-4441, surgeon_id: S-CHEN,   procedure_id: KNEE-SCOPE,      room_id: OR-5, date: 2026-11-06, start: "09:45", end: "11:30", laterality: left}

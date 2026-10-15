@@ -1,0 +1,50 @@
+# Surgeons and their privileges (credentialing). Privileges are procedure ids from
+# procedures.yaml. Dr. Chen is deliberately not privileged for robotic procedures.
+- id: S-PATEL
+  first_name: Priya
+  last_name: Patel
+  service: Orthopedics, joints
+  privileges: [TKA, TKA-ROBOTIC, UKA-ROBOTIC, THA]
+  office: {name: Northwind Orthopedic Associates (Dr. Patel), phone: 555-0142, fax: 555-0143}
+
+- id: S-CHEN
+  first_name: Marcus
+  last_name: Chen
+  service: Orthopedics, joints and sports
+  privileges: [TKA, THA, KNEE-SCOPE]
+  office: {name: Lakeview Sports & Joint (Dr. Chen), phone: 555-0152, fax: 555-0153, email: scheduling@lakeviewsportsjoint.example}
+
+- id: S-RUIZ
+  first_name: Elena
+  last_name: Ruiz
+  service: Urology
+  privileges: [PROSTATECTOMY-ROBOTIC]
+  office: {name: Northwind Urology (Dr. Ruiz), phone: 555-0162, fax: 555-0163}
+
+- id: S-OKAFOR
+  first_name: Samuel
+  last_name: Okafor
+  service: General surgery
+  privileges: [LAP-CHOLE, HERNIA-ROBOTIC]
+  office: {name: Northwind General Surgery (Dr. Okafor), phone: 555-0172, fax: 555-0173}
+
+- id: S-LEE
+  first_name: Hannah
+  last_name: Lee
+  service: Cardiac surgery
+  privileges: [CABG]
+  office: {name: Northwind Heart Surgery (Dr. Lee), phone: 555-0182, fax: 555-0183}
+
+- id: S-ALVAREZ
+  first_name: Nina
+  last_name: Alvarez
+  service: Ophthalmology
+  privileges: [CATARACT]
+  office: {name: Clearwater Eye Associates (Dr. Alvarez), phone: 555-0192, fax: 555-0193}
+
+- id: S-MEHTA
+  first_name: Raj
+  last_name: Mehta
+  service: Orthopedic trauma
+  privileges: [TIBIA-NAIL]
+  office: {name: Northwind Orthopedic Associates (Dr. Mehta), phone: 555-0142, fax: 555-0143}

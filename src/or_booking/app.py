@@ -170,12 +170,68 @@ def _memory_store(ctx: BuildContext, settings: dict[str, Any]) -> Any:
     return MemoryStore()
 
 
+def _scheduling_mock(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.scheduling_mock import MockSchedulingService
+
+    return MockSchedulingService.from_fixtures(ctx.fixtures_dir, clock=ctx.built["clock"])
+
+
+def _directory_fixture(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.directory_fixture import FixtureDirectory
+
+    return FixtureDirectory.from_fixtures(ctx.fixtures_dir)
+
+
+def _history_csv(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.history_csv import CsvDurationHistory
+
+    return CsvDurationHistory(ctx.fixtures_dir / "ehr" / "case_history.csv")
+
+
+def _policy_store_fixture(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.policy_store_fixture import FixturePolicyStore
+
+    return FixturePolicyStore(ctx.fixtures_dir / "policies")
+
+
+def _ingest_fixture(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.ingest_fixture import FixtureDocumentIngest
+
+    return FixtureDocumentIngest(ctx.fixtures_dir / "inbox", ctx.built["clock"])
+
+
+def _events_simulated(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.events_simulated import SimulatedEventSource
+
+    return SimulatedEventSource()
+
+
+def _outbox_drafts(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.outbox_drafts import DraftOutbox
+
+    return DraftOutbox(ctx.built["clock"])
+
+
+def _readiness_recorded(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.readiness_handoff import RecordedReadinessHandoff
+
+    return RecordedReadinessHandoff(ctx.built["clock"])
+
+
 # port name -> adapter name -> factory. Imports stay inside factories, so an adapter's
 # vendor SDK is loaded only when configuration selects it.
 ADAPTERS: dict[str, dict[str, Factory]] = {
     "clock": {"frozen": _frozen_clock, "system": _system_clock},
     "audit_log": {"jsonl": _jsonl_audit, "memory": _memory_audit},
     "store": {"memory": _memory_store},
+    "scheduling": {"mock": _scheduling_mock},
+    "directory": {"fixture": _directory_fixture},
+    "duration_history": {"csv": _history_csv},
+    "policy_store": {"fixture": _policy_store_fixture},
+    "document_ingest": {"fixture": _ingest_fixture},
+    "event_source": {"simulated": _events_simulated},
+    "outbox": {"drafts": _outbox_drafts},
+    "readiness_handoff": {"recorded": _readiness_recorded},
 }
 
 

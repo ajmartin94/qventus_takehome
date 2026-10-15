@@ -1,0 +1,81 @@
+# Block schedule: weekly allocations of a room's prime time to an owner (a surgeon or a
+# service group). Time no block covers is open time.
+#
+# Each block carries its own release horizon: unbooked time in the block returns to the
+# open pool `days_before` days before the surgery date, at `at`. Northwind's robotic
+# blocks release 14 days ahead and its standard blocks 7 days ahead, both at 07:00.
+#
+# `filler: true` marks blocks no scenario touches; the simulation treats them as fully
+# booked by cases it doesn't list.
+
+release_horizons:
+  robotic: &robotic {days_before: 14, at: "07:00"}
+  standard: &standard {days_before: 7, at: "07:00"}
+
+groups:
+  G-GENSURG: General surgery group
+  G-ENT: ENT group
+  G-ORTHO: Orthopedic group
+  G-GYN: GYN group
+  G-CARDIAC: Cardiac surgery group
+  G-OPHTH: Ophthalmology group
+
+blocks:
+  # OR-1, OR-2, OR-4: group filler, mostly booked
+  - {id: B-GENSURG-MON-OR1, owner: G-GENSURG, room: OR-1, weekday: mon, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GENSURG-TUE-OR1, owner: G-GENSURG, room: OR-1, weekday: tue, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GENSURG-WED-OR1, owner: G-GENSURG, room: OR-1, weekday: wed, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GENSURG-THU-OR1, owner: G-GENSURG, room: OR-1, weekday: thu, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GENSURG-FRI-OR1, owner: G-GENSURG, room: OR-1, weekday: fri, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-ENT-MON-OR2, owner: G-ENT, room: OR-2, weekday: mon, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-ENT-TUE-OR2, owner: G-ENT, room: OR-2, weekday: tue, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-ENT-WED-OR2, owner: G-ENT, room: OR-2, weekday: wed, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-ENT-THU-OR2, owner: G-ENT, room: OR-2, weekday: thu, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-ENT-FRI-OR2, owner: G-ENT, room: OR-2, weekday: fri, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GYN-MON-OR4, owner: G-GYN, room: OR-4, weekday: mon, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GYN-TUE-OR4, owner: G-GYN, room: OR-4, weekday: tue, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GYN-WED-OR4, owner: G-GYN, room: OR-4, weekday: wed, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GYN-THU-OR4, owner: G-GYN, room: OR-4, weekday: thu, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-GYN-FRI-OR4, owner: G-GYN, room: OR-4, weekday: fri, start: "07:30", end: "15:30", release: *standard, filler: true}
+
+  # OR-3: orthopedic. Wednesday is open time.
+  - {id: B-CHEN-MON-OR3, owner: S-CHEN, room: OR-3, weekday: mon, start: "07:30", end: "15:30", release: *standard}
+  - {id: B-ORTHO-TUE-OR3, owner: G-ORTHO, room: OR-3, weekday: tue, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-PATEL-THU-OR3, owner: S-PATEL, room: OR-3, weekday: thu, start: "07:30", end: "15:30", release: *standard}
+  - {id: B-ORTHO-FRI-OR3, owner: G-ORTHO, room: OR-3, weekday: fri, start: "07:30", end: "15:30", release: *standard, filler: true}
+
+  # OR-5: robot-ready
+  - {id: B-OKAFOR-MON-OR5, owner: S-OKAFOR, room: OR-5, weekday: mon, start: "07:30", end: "15:30", release: *robotic}
+  - {id: B-PATEL-TUE-OR5, owner: S-PATEL, room: OR-5, weekday: tue, start: "07:30", end: "15:30", release: *robotic}
+  - {id: B-CHEN-WED-OR5, owner: S-CHEN, room: OR-5, weekday: wed, start: "07:30", end: "15:30", release: *standard}
+  - {id: B-OKAFOR-THU-OR5, owner: S-OKAFOR, room: OR-5, weekday: thu, start: "07:30", end: "15:30", release: *robotic}
+  - {id: B-CHEN-FRI-OR5, owner: S-CHEN, room: OR-5, weekday: fri, start: "07:30", end: "15:30", release: *standard}
+
+  # OR-6: robot-ready. Thursday is open time.
+  - {id: B-GYN-MON-OR6, owner: G-GYN, room: OR-6, weekday: mon, start: "07:30", end: "15:30", release: *robotic, filler: true}
+  - {id: B-GYN-TUE-OR6, owner: G-GYN, room: OR-6, weekday: tue, start: "07:30", end: "15:30", release: *robotic, filler: true}
+  - {id: B-RUIZ-WED-OR6, owner: S-RUIZ, room: OR-6, weekday: wed, start: "07:30", end: "15:30", release: *robotic}
+  - {id: B-GYN-FRI-OR6, owner: G-GYN, room: OR-6, weekday: fri, start: "07:30", end: "15:30", release: *robotic, filler: true}
+
+  # OR-7: cardiac / hybrid
+  - {id: B-CARDIAC-MON-OR7, owner: G-CARDIAC, room: OR-7, weekday: mon, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-LEE-TUE-OR7, owner: S-LEE, room: OR-7, weekday: tue, start: "07:30", end: "15:30", release: *standard}
+  - {id: B-CARDIAC-WED-OR7, owner: G-CARDIAC, room: OR-7, weekday: wed, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-LEE-THU-OR7, owner: S-LEE, room: OR-7, weekday: thu, start: "07:30", end: "15:30", release: *standard}
+  - {id: B-CARDIAC-FRI-OR7, owner: G-CARDIAC, room: OR-7, weekday: fri, start: "07:30", end: "15:30", release: *standard, filler: true}
+
+  # OR-8: minor / ophthalmology
+  - {id: B-OPHTH-MON-OR8, owner: G-OPHTH, room: OR-8, weekday: mon, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-OPHTH-TUE-OR8, owner: G-OPHTH, room: OR-8, weekday: tue, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-OPHTH-WED-OR8, owner: G-OPHTH, room: OR-8, weekday: wed, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-OPHTH-THU-OR8, owner: G-OPHTH, room: OR-8, weekday: thu, start: "07:30", end: "15:30", release: *standard, filler: true}
+  - {id: B-ALVAREZ-FRI-OR8, owner: S-ALVAREZ, room: OR-8, weekday: fri, start: "07:30", end: "15:30", release: *standard}
+
+# Time an owner gave back before the automatic release.
+early_releases:
+  - block: B-CHEN-FRI-OR5
+    date: 2026-11-06
+    start: "12:00"
+    end: "15:30"
+    released_at: 2026-10-09T16:20:00
+    reason: Dr. Chen is away Friday afternoon

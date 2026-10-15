@@ -1,0 +1,131 @@
+# Procedure master. Each entry's attributes decide which rooms and shared equipment can
+# host the case and which booking strategy applies: an ICU post-op destination selects
+# OR-plus-ICU-bed booking, a tandem-eligible procedure selects parallel-room booking.
+# Aliases are the words people write; the directory matches requests against them.
+
+- id: TKA-ROBOTIC
+  name: Robotic-assisted total knee arthroplasty
+  cpt: "27447"
+  aliases: [robotic tka, robotic total knee, robotic total knee arthroplasty, robotic total knee replacement, robotic assisted total knee arthroplasty, robotic knee replacement]
+  laterality: required
+  room_capabilities: [robot_ready, laminar_flow]
+  shared_assets: [orthopedic_robot]
+  equipment: [Orthopedic robot]
+  implant: {system: Total knee system, vendor_id: V-KNEE-01, vendor_name: Meridian Orthopedics, loaner_set: true, rep_attends: true}
+  post_op: same_day_or_overnight
+  prior_auth: required
+  default_minutes: 120
+
+- id: TKA
+  name: Total knee arthroplasty
+  cpt: "27447"
+  aliases: [tka, total knee, total knee arthroplasty, total knee replacement, knee replacement]
+  laterality: required
+  room_capabilities: [laminar_flow]
+  implant: {system: Total knee system, vendor_id: V-KNEE-01, vendor_name: Meridian Orthopedics, loaner_set: true, rep_attends: true}
+  post_op: same_day_or_overnight
+  prior_auth: required
+  default_minutes: 105
+
+- id: UKA-ROBOTIC
+  name: Robotic partial knee arthroplasty
+  cpt: "27446"
+  aliases: [robotic uka, robotic partial knee, robotic partial knee replacement, robotic unicompartmental knee arthroplasty]
+  laterality: required
+  room_capabilities: [robot_ready, laminar_flow]
+  shared_assets: [orthopedic_robot]
+  equipment: [Orthopedic robot]
+  implant: {system: Partial knee system, vendor_id: V-KNEE-01, vendor_name: Meridian Orthopedics, loaner_set: false, rep_attends: true}
+  post_op: same_day
+  prior_auth: required
+  default_minutes: 95
+
+- id: THA
+  name: Total hip arthroplasty
+  cpt: "27130"
+  aliases: [tha, total hip, total hip arthroplasty, total hip replacement, hip replacement]
+  laterality: required
+  room_capabilities: [laminar_flow]
+  implant: {system: Total hip system, vendor_id: V-HIP-01, vendor_name: Meridian Orthopedics, loaner_set: true, rep_attends: true}
+  post_op: overnight
+  prior_auth: required
+  default_minutes: 110
+
+- id: KNEE-SCOPE
+  name: Knee arthroscopy with meniscectomy
+  cpt: "29881"
+  aliases: [knee scope, scope knee, knee arthroscopy, arthroscopic meniscectomy, knee arthroscopy with meniscectomy]
+  laterality: required
+  room_capabilities: [laminar_flow]   # an orthopedic room
+  post_op: same_day
+  prior_auth: not_required
+  default_minutes: 50
+
+- id: PROSTATECTOMY-ROBOTIC
+  name: Robotic radical prostatectomy
+  cpt: "55866"
+  aliases: [robotic prostatectomy, robotic radical prostatectomy, ralp, rarp]
+  laterality: none
+  room_capabilities: [robot_ready]
+  shared_assets: [soft_tissue_robot]
+  equipment: [Soft-tissue robot]
+  post_op: overnight
+  prior_auth: required
+  default_minutes: 210
+
+- id: HERNIA-ROBOTIC
+  name: Robotic inguinal hernia repair
+  cpt: "49650"
+  aliases: [robotic hernia, robotic hernia repair, robotic inguinal hernia repair]
+  laterality: none
+  room_capabilities: [robot_ready]
+  shared_assets: [soft_tissue_robot]
+  equipment: [Soft-tissue robot]
+  post_op: same_day
+  prior_auth: not_required
+  default_minutes: 120
+
+- id: LAP-CHOLE
+  name: Laparoscopic cholecystectomy
+  cpt: "47562"
+  aliases: [lap chole, lap cholecystectomy, laparoscopic cholecystectomy, cholecystectomy]
+  laterality: none
+  room_capabilities: [general]
+  post_op: same_day
+  prior_auth: not_required
+  default_minutes: 80
+
+- id: CABG
+  name: Coronary artery bypass
+  cpt: "33533"
+  aliases: [cabg, coronary artery bypass, coronary artery bypass graft, bypass surgery]
+  laterality: none
+  room_capabilities: [perfusion]
+  equipment: [Perfusion]
+  post_op: icu
+  prior_auth: required
+  default_minutes: 300
+
+- id: CATARACT
+  name: Cataract removal with lens implant
+  cpt: "66984"
+  aliases: [cataract, cataract surgery, cataract extraction, phaco, cataract removal with lens implant]
+  laterality: required   # the eye
+  room_capabilities: [microscope]
+  implant: {system: Intraocular lens, vendor_id: V-LENS-01, vendor_name: Clearview Optics, loaner_set: false, rep_attends: false}
+  post_op: same_day
+  prior_auth: varies
+  tandem_eligible: true
+  default_minutes: 25
+
+- id: TIBIA-NAIL
+  name: Tibial shaft fracture nailing
+  cpt: "27759"
+  aliases: [tibial nail, tibia nail, im nail tibia, intramedullary nail tibia, tibial shaft fracture nailing]
+  laterality: required
+  room_capabilities: [laminar_flow, c_arm_ready]
+  shared_assets: [c_arm]
+  equipment: [C-arm]
+  post_op: inpatient
+  prior_auth: not_required
+  default_minutes: 120

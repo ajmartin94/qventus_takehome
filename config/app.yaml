@@ -17,6 +17,21 @@ ports:
   store:
     adapter: memory
 
+  # The simulated hospital's systems (fixtures/). A real site swaps these for adapters
+  # that talk to its EHR and scheduling system; nothing else changes.
+  scheduling:        {adapter: mock}
+  directory:         {adapter: fixture}
+  duration_history:  {adapter: csv}
+  policy_store:      {adapter: fixture}
+
+  # Stubs: they record what they would do and never pretend to deliver.
+  document_ingest:   {adapter: fixture}     # pre-transcribed fax, email and call text
+  event_source:      {adapter: simulated}   # events injected from the CLI or a scenario
+  outbox:            {adapter: drafts}      # drafts only; nothing is sent
+  readiness_handoff: {adapter: recorded}
+
+  # llm: wired in Phase 3 (scripted fake) and Phase 4 (Anthropic)
+
 llm:
   default_model: claude-opus-5-5
   prompts:

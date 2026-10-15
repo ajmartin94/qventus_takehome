@@ -1,0 +1,15 @@
+# Patients (synthetic). Two share the name Maria Gomez; only date of birth tells them apart.
+# h_and_p_date is the most recent history and physical on file.
+- {mrn: "100231", first_name: Maria,   last_name: Gomez,   dob: 1958-03-12, sex: F, payer_id: PAY-MA-01}
+- {mrn: "100877", first_name: Maria,   last_name: Gomez,   dob: 1971-07-30, sex: F, payer_id: PAY-COM-01}
+- {mrn: "100412", first_name: John,    last_name: Carter,  dob: 1962-11-02, sex: M, payer_id: PAY-COM-01, h_and_p_date: 2026-10-01}
+- {mrn: "100518", first_name: Aisha,   last_name: Rahman,  dob: 1949-05-19, sex: F, payer_id: PAY-MCR-01}
+- {mrn: "100633", first_name: Linda,   last_name: Novak,   dob: 1955-01-24, sex: F, payer_id: PAY-MCR-01}
+- {mrn: "100745", first_name: William, last_name: Ortiz,   dob: 1984-09-08, sex: M, payer_id: PAY-COM-01}
+- {mrn: "100856", first_name: Grace,   last_name: Liu,     dob: 1967-04-15, sex: F, payer_id: PAY-COM-02}
+
+# For the eval set
+- {mrn: "100961", first_name: Robert,  last_name: Kim,      dob: 1970-02-11, sex: M, payer_id: PAY-COM-02}
+- {mrn: "101072", first_name: Dorothy, last_name: Evans,    dob: 1946-08-30, sex: F, payer_id: PAY-MCR-01}
+- {mrn: "101183", first_name: Michael, last_name: Brooks,   dob: 1988-12-05, sex: M, payer_id: PAY-COM-01}
+- {mrn: "101294", first_name: James,   last_name: Whitaker, dob: 1979-06-21, sex: M, payer_id: PAY-COM-02}

@@ -1,0 +1,8 @@
+# What the fax server, email gateway and call transcription hand over: one entry per
+# document, with the text pre-transcribed in `file`. A document is visible once the
+# clock passes `received_at`.
+- {document_id: fax_001,   file: fax_001.txt,   channel: fax,             received_at: 2026-10-14T08:12:00, sender: Northwind Orthopedic Associates (Dr. Patel)}
+- {document_id: email_002, file: email_002.txt, channel: email,           received_at: 2026-10-14T08:41:00, sender: scheduling@lakeviewsportsjoint.example, subject: "Surgery request - Carter, John - TKA"}
+- {document_id: email_003, file: email_003.txt, channel: email,           received_at: 2026-10-14T08:57:00, sender: Northwind Orthopedic Associates (Dr. Patel), subject: "THA booking request - Rahman"}
+- {document_id: fax_004,   file: fax_004.txt,   channel: fax,             received_at: 2026-10-14T13:26:00, sender: Northwind Orthopedic Associates (Dr. Patel)}
+- {document_id: call_005,  file: call_005.txt,  channel: call_transcript, received_at: 2026-10-14T15:05:00, sender: Northwind Orthopedic Associates (Dr. Patel)}

@@ -1,0 +1,80 @@
+# Surgical orders: the source of truth for procedure and side. A request that
+# contradicts its order is raised as a conflict, never resolved by guessing.
+- id: ORD-20001
+  patient_mrn: "100231"   # Maria Gomez, 1958
+  surgeon_id: S-PATEL
+  procedure_id: TKA-ROBOTIC
+  laterality: right
+  diagnosis: {code: M17.11, description: "Unilateral primary osteoarthritis, right knee"}
+  authorization: {status: not_started}
+  ordered_on: 2026-10-09
+
+- id: ORD-20002
+  patient_mrn: "100412"   # John Carter: the order says right; scenario D6's email says left
+  surgeon_id: S-CHEN
+  procedure_id: TKA
+  laterality: right
+  diagnosis: {code: M17.11, description: "Unilateral primary osteoarthritis, right knee"}
+  authorization: {status: pending, number: LCP-88213}
+  ordered_on: 2026-10-05
+
+- id: ORD-20003
+  patient_mrn: "100518"   # Aisha Rahman
+  surgeon_id: S-PATEL
+  procedure_id: THA
+  laterality: left
+  diagnosis: {code: M16.12, description: "Unilateral primary osteoarthritis, left hip"}
+  authorization: {status: not_started}
+  ordered_on: 2026-10-12
+
+- id: ORD-20004
+  patient_mrn: "100633"   # Linda Novak
+  surgeon_id: S-LEE
+  procedure_id: CABG
+  diagnosis: {code: I25.10, description: "Atherosclerotic heart disease of native coronary artery without angina pectoris"}
+  authorization: {status: not_started}
+  ordered_on: 2026-10-08
+
+- id: ORD-20005
+  patient_mrn: "100856"   # Grace Liu, already booked as case C-4417
+  surgeon_id: S-PATEL
+  procedure_id: TKA-ROBOTIC
+  laterality: left
+  diagnosis: {code: M17.12, description: "Unilateral primary osteoarthritis, left knee"}
+  authorization: {status: approved, number: GPH-40455, valid_through: 2026-11-30}
+  ordered_on: 2026-09-14
+
+- id: ORD-20006
+  patient_mrn: "100961"   # Robert Kim
+  surgeon_id: S-OKAFOR
+  procedure_id: LAP-CHOLE
+  diagnosis: {code: K80.20, description: "Calculus of gallbladder without cholecystitis without obstruction"}
+  authorization: {status: not_started}
+  ordered_on: 2026-10-07
+
+- id: ORD-20007
+  patient_mrn: "101072"   # Dorothy Evans
+  surgeon_id: S-ALVAREZ
+  procedure_id: CATARACT
+  laterality: right
+  diagnosis: {code: H25.11, description: "Age-related nuclear cataract, right eye"}
+  authorization: {status: not_started}
+  ordered_on: 2026-10-02
+
+- id: ORD-20008
+  patient_mrn: "101183"   # Michael Brooks
+  surgeon_id: S-CHEN
+  procedure_id: KNEE-SCOPE
+  laterality: left
+  diagnosis: {code: S83.242A, description: "Other tear of medial meniscus, current injury, left knee, initial encounter"}
+  authorization: {status: not_started}
+  ordered_on: 2026-10-06
+
+- id: ORD-20009
+  patient_mrn: "101294"   # James Whitaker
+  surgeon_id: S-MEHTA
+  procedure_id: TIBIA-NAIL
+  laterality: right
+  diagnosis: {code: S82.201A, description: "Unspecified fracture of shaft of right tibia, initial encounter for closed fracture"}
+  authorization: {status: not_started}
+  ordered_on: 2026-10-13

@@ -1,0 +1,72 @@
+# Northwind Regional Medical Center: routing.
+# For each situation the agent can detect, who handles it and what the handoff carries.
+# Changing who handles a situation is a change here, not in the agent.
+
+- situation: urgent_or_emergent
+  action: hand_off
+  route_to: [anesthesiologist_in_charge, or_desk]
+  handoff_fields: [patient, surgeon, procedure, laterality, stated_urgency, requested_timing, contact]
+  source: add_ons_and_urgent_cases.md#urgent-and-emergent-cases
+
+- situation: add_on_after_close
+  action: hand_off
+  route_to: [or_desk]
+  handoff_fields: [patient, surgeon, procedure, laterality, requested_date, contact]
+  source: add_ons_and_urgent_cases.md#add-on-cases
+
+- situation: bump_request
+  action: list_affected_cases
+  route_to: [anesthesiologist_in_charge]
+  handoff_fields: [requested_case, affected_cases]
+  source: add_ons_and_urgent_cases.md#bumping-a-scheduled-case
+
+- situation: clinical_question
+  action: decline_and_route
+  route_to: [surgeons_office]
+  handoff_fields: [patient, question, contact]
+  source: preop_readiness.md#clinical-questions
+
+- situation: other_owner_unreleased_block
+  action: draft_release_request
+  route_to: [block_owner]
+  sent_by: coordinator
+  handoff_fields: [block_owner, date, room, requested_window, surgeon, procedure]
+  agent_continues: true   # the bookable options are still offered
+  source: block_release.md#asking-an-owner-to-release-time
+
+- situation: unsupported_booking_strategy
+  action: hand_off
+  route_to: [coordinator]
+  handoff_fields: [patient, surgeon, procedure, reason, contact]
+  source: rooms_and_equipment.md#cases-the-scheduling-office-books-by-hand
+
+- situation: unresolvable_conflict
+  action: hand_off
+  route_to: [coordinator]
+  handoff_fields: [field, request_value, order_value, contact]
+  source: preop_readiness.md#booking-data
+
+- situation: clarification_unanswered
+  action: hand_off
+  route_to: [coordinator]
+  reply_deadline: {business_days: 1}
+  handoff_fields: [question, asked_at, contact]
+  source: preop_readiness.md#incomplete-requests
+
+- situation: clarification_attempts_exhausted
+  action: hand_off
+  route_to: [coordinator]
+  handoff_fields: [question, attempts, contact]
+  source: preop_readiness.md#incomplete-requests
+
+- situation: readiness_update
+  action: hand_off
+  route_to: [readiness_worklist]
+  handoff_fields: [case_number, update]
+  source: preop_readiness.md#readiness-updates
+
+- situation: human_requested
+  action: hand_off
+  route_to: [coordinator]
+  handoff_fields: [request_summary, contact]
+  source: preop_readiness.md#incomplete-requests

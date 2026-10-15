@@ -25,6 +25,16 @@ uv pip install -e ".[dev]"
 .venv/Scripts/or-booking ports
 ```
 
+```bash
+.venv/Scripts/or-booking availability
+```
+
+```bash
+.venv/Scripts/or-booking schedule
+```
+
+`ports` shows which adapter backs each port. `availability` sends scenario D1's availability query (Dr. Patel, robotic knee, 112/135 minutes, week of Nov 2) to the scheduling service; its options take any other surgeon, procedure, length or dates. `schedule` prints the simulated hospital's week, rooms by day. The simulated hospital itself is described in [fixtures/README.md](fixtures/README.md).
+
 ## Test
 
 ```bash

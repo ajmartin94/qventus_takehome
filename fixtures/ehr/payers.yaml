@@ -1,0 +1,25 @@
+# Payers. prior_auth is whether the plan requires authorization for elective surgery;
+# decision_clock is how long the payer has to decide (CMS-0057-F sets 7 days standard
+# and 72 hours expedited for Medicare Advantage).
+- id: PAY-MA-01
+  name: Northwind Health Advantage (Medicare Advantage)
+  kind: medicare_advantage
+  prior_auth: required
+  decision_clock: {standard_days: 7, expedited_hours: 72}
+
+- id: PAY-MCR-01
+  name: Medicare (traditional)
+  kind: medicare
+  prior_auth: not_required
+
+- id: PAY-COM-01
+  name: Lakeshore Commercial PPO
+  kind: commercial
+  prior_auth: required
+  decision_clock: {standard_days: 15, expedited_hours: 72}
+
+- id: PAY-COM-02
+  name: Great Plains Health HMO
+  kind: commercial
+  prior_auth: required
+  decision_clock: {standard_days: 7, expedited_hours: 72}

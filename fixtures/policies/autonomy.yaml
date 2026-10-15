@@ -1,0 +1,28 @@
+# Northwind Regional Medical Center: what the scheduling agent may do without approval.
+# Tier 1: clean intake. Tier 2: decision support, a person confirms. Tier 3: acts alone.
+
+- action: book_case
+  tier: 2
+  description: The agent prepares the booking and its options; the coordinator confirms every commit.
+
+- action: straight_through_booking
+  tier: 3
+  mode: shadow
+  conditions:
+    - all_fields_resolved
+    - no_order_conflict
+    - supported_strategy
+    - own_block_or_open_time
+    - no_resource_conflict
+    - before_schedule_close
+    - duration_not_overridden
+    - not_duplicate
+  description: Report whether a request would have qualified for booking without the coordinator. Never act on it.
+
+- action: send_notifications
+  tier: 2
+  description: Confirmations and change notices are drafted for a person to approve and send.
+
+- action: cancel_case
+  tier: 2
+  description: The agent captures the reason and prepares the cancellation; the coordinator confirms.

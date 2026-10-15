@@ -1,0 +1,7 @@
+# Shared equipment that moves between rooms. A robotic case needs a robot-ready room
+# AND a free robot of the right type.
+- {id: ORTHO-ROBOT-1, type: orthopedic_robot,  name: Orthopedic robot (joint replacement), rooms: [OR-5, OR-6]}
+- {id: SOFT-ROBOT-1,  type: soft_tissue_robot, name: Soft-tissue robot 1,                  rooms: [OR-5, OR-6]}
+- {id: SOFT-ROBOT-2,  type: soft_tissue_robot, name: Soft-tissue robot 2,                  rooms: [OR-5, OR-6]}
+- {id: CARM-1,        type: c_arm,             name: C-arm fluoroscopy 1,                  rooms: [OR-1, OR-2, OR-3, OR-4, OR-5, OR-6]}
+- {id: CARM-2,        type: c_arm,             name: C-arm fluoroscopy 2,                  rooms: [OR-1, OR-2, OR-3, OR-4, OR-5, OR-6]}

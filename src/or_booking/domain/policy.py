@@ -78,9 +78,10 @@ class BookingRequirement(Model):
 
 
 class BookingGate(Model):
-    """The item must be satisfied before booking a surgery this close."""
+    """Booking a surgery this close requires `satisfied_when` to hold (checked with the booking request)."""
 
     within_days_of_surgery: int
+    satisfied_when: Conditions
 
 
 class ReadinessVariant(Model):
@@ -94,12 +95,20 @@ class ReadinessRule(Model):
     owner: str
     applies_when: Conditions = {}
     due: Deadline | None = None
-    valid_within: Offset | None = None  # a document must be dated no earlier than surgery minus this
+    # A dated document (the fact `dated_by`) counts only if dated no earlier than surgery minus `valid_within`.
+    dated_by: str | None = None
+    valid_within: Offset | None = None
     done_when: Conditions = {}
     gates_booking: BookingGate | None = None
     depends_on: list[str] = []
     variants: list[ReadinessVariant] = []
     source: str
+
+    @model_validator(mode="after")
+    def _dated_pair(self) -> ReadinessRule:
+        if (self.dated_by is None) != (self.valid_within is None):
+            raise ValueError(f"readiness rule {self.id}: dated_by and valid_within go together")
+        return self
 
 
 # ---------------------------------------------------------------------------

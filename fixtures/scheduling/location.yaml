@@ -1,0 +1,14 @@
+# Northwind Regional Medical Center: main OR suite.
+# What the OR scheduling system holds about the suite itself. All times are local.
+id: NRMC-MAIN-OR
+name: Northwind Regional Medical Center, Main OR
+timezone: America/Chicago
+operating_days: [mon, tue, wed, thu, fri]
+prime_time: {start: "07:30", end: "15:30"}   # 480 minutes a room per day
+
+# After the schedule for a date closes, new requests for it are add-ons,
+# handled as routing policy says (policies/routing.yaml).
+schedule_close: {business_days_before: 1, at: "14:00"}
+
+# How long a hold protects an offered slot while a booking is completed.
+hold_minutes: 10

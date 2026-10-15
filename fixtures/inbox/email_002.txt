@@ -1,0 +1,24 @@
+From: Tasha Monroe <scheduling@lakeviewsportsjoint.example>
+To: NRMC Surgical Scheduling <orscheduling@northwind-rmc.example>
+Date: Wed, 14 Oct 2026 08:41
+Subject: Surgery request - Carter, John - TKA
+
+Good morning,
+
+Please schedule the following for Dr. Chen:
+
+Patient: John Carter, DOB 11/02/1962
+Procedure: Total knee arthroplasty, LEFT knee
+Diagnosis: primary OA
+Anesthesia: spinal with MAC
+Patient class: outpatient
+Insurance: Lakeshore PPO, auth pending, ref LCP-88213
+Implants: knee system, rep attending
+Timing: first week of November if possible, Dr. Chen prefers his own block time
+
+H&P was done 10/1 and is in the chart.
+
+Thanks,
+Tasha Monroe
+Surgical Scheduler, Lakeview Sports & Joint
+555-0152 | fax 555-0153
