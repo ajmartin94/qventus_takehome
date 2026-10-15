@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Literal
 
 from or_booking.adapters.fixture_data import parse, parse_list, read_yaml
-from or_booking.domain.models import Laterality, Model
+from or_booking.domain.models import AnesthesiaType, ImplantRequest, Laterality, Model, PatientClass
 
 Weekday = Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 WEEKDAYS: tuple[Weekday, ...] = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
@@ -97,6 +97,10 @@ class FixtureCase(Model):
     end: time
     laterality: Laterality | None = None
     patient_mrn: str | None = None
+    diagnosis_code: str | None = None
+    anesthesia_type: AnesthesiaType | None = None
+    patient_class: PatientClass | None = None
+    implants: list[ImplantRequest] = []
     assets: list[str] = []
 
 

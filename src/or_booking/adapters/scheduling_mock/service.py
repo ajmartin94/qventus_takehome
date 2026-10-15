@@ -46,6 +46,7 @@ from or_booking.domain.models import (
     BookedCase,
     BookingRequest,
     CaseStatus,
+    CaseUpdate,
     DateWindow,
     Hold,
     Ownership,
@@ -311,6 +312,25 @@ class MockSchedulingService:
         state.status = "consumed"
         return moved
 
+    def update_case(self, update: CaseUpdate) -> BookedCase:
+        if update.idempotency_key in self._by_key:
+            return self._cases[self._by_key[update.idempotency_key]]
+        case = self.get_case(update.case_id)
+        if self._procedure(case.procedure_id).laterality == "required" and update.laterality is None:
+            raise MissingRequiredField(["laterality"])
+        changed = case.model_copy(
+            update={
+                "laterality": update.laterality,
+                "diagnosis_code": update.diagnosis_code,
+                "anesthesia_type": update.anesthesia_type,
+                "patient_class": update.patient_class,
+                "implants": update.implants,
+            }
+        )
+        self._cases[case.case_id] = changed
+        self._by_key[update.idempotency_key] = case.case_id
+        return changed
+
     # ------------------------------------------------------------------
     # Port: schedule view
     # ------------------------------------------------------------------
@@ -550,6 +570,10 @@ def _to_booked(c: FixtureCase) -> BookedCase:
         end=_at(c.date, c.end),
         patient_mrn=c.patient_mrn,
         laterality=c.laterality,
+        diagnosis_code=c.diagnosis_code,
+        anesthesia_type=c.anesthesia_type,
+        patient_class=c.patient_class,
+        implants=c.implants,
         assets=c.assets,
     )
 

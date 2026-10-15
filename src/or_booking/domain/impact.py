@@ -9,14 +9,13 @@ each team needs. Date change is the first stretch goal (scenario D9).
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from or_booking.domain.models import BookedCase, ReadinessItem, Unsupported
 
 
-def change_impact(case: BookedCase, readiness: list[ReadinessItem], new_start: datetime) -> Unsupported:
+def change_impact(case: BookedCase, readiness: list[ReadinessItem], change: str) -> Unsupported:
+    """`change` says what is changing, e.g. "moving C-4417 to a new date"."""
     return Unsupported(
         capability="Change impact analysis",
-        reason=f"Working out what moving {case.case_id} to {new_start:%a %b %d} invalidates isn't supported in the prototype",
+        reason=f"Working out what {change} invalidates isn't supported in the prototype",
         would_need=["authorization dates", "H&P window", "loaner set deadline", "pre-admission testing", "notifications"],
     )

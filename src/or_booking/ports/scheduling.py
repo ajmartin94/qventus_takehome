@@ -12,6 +12,7 @@ Errors each method may raise (all from `or_booking.domain.errors`):
   ResourceConflict, RequestRejected, NotFound. A repeated idempotency key returns the
   case already created, never a second one.
 - cancel_case, get_case: NotFound; reschedule_case: the hold errors above, NotFound
+- update_case: MissingRequiredField, NotFound. Idempotent on the update's key.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from or_booking.domain.models import (
     BookedCase,
     BookingRequest,
     CaseStatus,
+    CaseUpdate,
     DateWindow,
     Hold,
     Model,
@@ -91,6 +93,10 @@ class SchedulingService(Protocol):
     def cancel_case(self, case_id: str, reason: str) -> BookedCase: ...
 
     def reschedule_case(self, case_id: str, hold_id: str, idempotency_key: str) -> BookedCase: ...
+
+    def update_case(self, update: CaseUpdate) -> BookedCase:
+        """Change a booked case's details without moving it."""
+        ...
 
     def get_schedule(self, window: DateWindow) -> ScheduleView:
         """Read-only view of blocks and cases per room per day, for the schedule grid."""

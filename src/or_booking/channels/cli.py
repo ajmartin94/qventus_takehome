@@ -1,27 +1,38 @@
 """Command-line channel. Builds the services through the composition root and renders with Rich.
 
-Commands grow with the build:
-- `ports` (Phase 0): how each port is wired.
-- `availability` and `schedule` (Phase 1): raw views of the scheduling service, for
-  checking the simulated hospital. The agent's own option cards come in Phase 3.
+Commands:
+- `ports`: how each port is wired.
+- `availability` and `schedule`: raw views of the scheduling service, for checking the
+  simulated hospital.
+- `replay`: run a scenario with the scripted model, deterministic and offline.
+- `chat`: talk to the agent; with `--scenario`, step through a scripted conversation.
 """
 
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
+from rich.text import Text
 
-from or_booking.app import PORTS, Services, build
+from or_booking.app import PORTS, Services, build, build_orchestrator, load_config
+from or_booking.channels.render import render_result
+from or_booking.channels.scenario import load_scenario, run_scenario, scenario_paths, services_for
 from or_booking.domain.errors import BookingError
-from or_booking.domain.models import AvailabilityQuery, CaseMinutes, DateWindow, SlotOption
+from or_booking.domain.models import AvailabilityQuery, BookingField, CaseMinutes, DateWindow, SlotOption
+from or_booking.orchestrator import Orchestrator
+from or_booking.orchestrator.states import WAITING
+from or_booking.ports.event_source import EventType, ScheduleEvent
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="AI-assisted OR case booking (prototype).")
 console = Console()
 
 _STATE_STYLE = {"held": "blue", "released": "green", "open": "white"}
+SCENARIO_DIR = Path("scenarios/demo")
 
 
 def _services() -> Services:
@@ -31,6 +42,11 @@ def _services() -> Services:
 @app.callback()
 def main() -> None:
     """AI-assisted OR case booking (prototype)."""
+
+
+# ---------------------------------------------------------------------------
+# The simulated hospital
+# ---------------------------------------------------------------------------
 
 
 @app.command()
@@ -109,8 +125,11 @@ def schedule(
     end: str = typer.Option("2026-11-06", help="Last date (YYYY-MM-DD)"),
 ) -> None:
     """Show the OR schedule: rooms by day, block owners colored by release state, booked cases."""
-    services = _services()
-    view = services.scheduling.get_schedule(DateWindow(start=date.fromisoformat(start), end=date.fromisoformat(end)))
+    console.print(schedule_table(_services(), date.fromisoformat(start), date.fromisoformat(end)))
+
+
+def schedule_table(services: Services, start: date, end: date) -> Table:
+    view = services.scheduling.get_schedule(DateWindow(start=start, end=end))
     days = sorted({rd.date for rd in view.room_days})
     table = Table(title="OR schedule  [blue]held block[/blue]  [green]released[/green]  open  [dim]filler[/dim]", title_justify="left")
     table.add_column("Room", style="bold")
@@ -124,16 +143,159 @@ def schedule(
                 cells.append("[dim]booked[/dim]")
                 continue
             lines = []
-            for s in rd.segments:
-                owner = s.owner_name or "open time"
-                if s.filler:
+            for seg in rd.segments:
+                owner = seg.owner_name or "open time"
+                if seg.filler:
                     lines.append(f"[dim]{owner} (booked)[/dim]")
                 else:
-                    lines.append(f"[{_STATE_STYLE[s.state]}]{s.start:%H:%M} {owner}[/{_STATE_STYLE[s.state]}]")
+                    lines.append(f"[{_STATE_STYLE[seg.state]}]{seg.start:%H:%M} {owner}[/{_STATE_STYLE[seg.state]}]")
             lines += [f"  {c.start:%H:%M}-{c.end:%H:%M} {c.procedure_id}" for c in rd.cases]
             cells.append("\n".join(lines))
         table.add_row(room, *cells)
-    console.print(table)
+    return table
+
+
+# ---------------------------------------------------------------------------
+# Talking to the agent
+# ---------------------------------------------------------------------------
+
+
+def find_scenario(name: str) -> Path:
+    """A path, or a demo scenario's file name or prefix: 'd1' finds scenarios/demo/d1_faxed_request.yaml."""
+    path = Path(name)
+    if path.exists():
+        return path
+    folder = load_config()[1] / SCENARIO_DIR
+    matches = [p for p in scenario_paths(folder) if p.stem == name or p.stem.startswith(f"{name}_")]
+    if len(matches) != 1:
+        raise typer.BadParameter(f"{len(matches)} scenarios match {name!r} in {folder}")
+    return matches[0]
+
+
+@app.command()
+def replay(scenario: str = typer.Argument(..., help="Scenario file, or a demo scenario name such as d1")) -> None:
+    """Run a scenario with the scripted model: deterministic, no network. Exits 1 if its expectations fail."""
+    sc = load_scenario(find_scenario(scenario))
+    run = run_scenario(sc)
+    console.rule(f"[bold]{sc.title}[/bold]  ({sc.id}, clock {sc.clock:%a %b %d %H:%M})")
+    for turn in run.turns:
+        console.print(Text(f"{turn.speaker}: {turn.text}", style="magenta"))
+        console.print(render_result(turn.result))
+        console.print()
+    if run.passed:
+        console.print(Text(f"PASS: {sc.id} ended in {run.session.state.value}; every expectation and safety gate held.", style="green"))
+        return
+    for failure in run.failures:
+        console.print(Text(f"FAIL: {failure}", style="red"))
+    raise typer.Exit(1)
+
+
+@app.command()
+def chat(
+    scenario: str = typer.Option(None, help="Step through a scenario's scripted turns (no network): press Enter to send each"),
+    coordinator: str = typer.Option("C-0042", help="Who confirms bookings in this session"),
+) -> None:
+    """Talk to the agent. Type /help for commands."""
+    turns: list[str] = []
+    current: str | None = None
+    if scenario:
+        sc = load_scenario(find_scenario(scenario))
+        services = services_for(sc)
+        agent = build_orchestrator(services, coordinator_id=coordinator)
+        turns = list(sc.coordinator_turns)
+        if sc.input.document:
+            console.print(Text(f"inbox: {sc.input.document}", style="magenta"))
+            result = agent.receive_document(sc.input.document, interactive=sc.input.interactive)
+        else:
+            console.print(Text(f"coordinator: {sc.input.message}", style="magenta"))
+            result = agent.receive_message(sc.input.message or "")
+        console.print(render_result(result))
+        current = result.request_id
+    else:
+        services = _services()
+        if services.wiring.get("llm") == "scripted":
+            console.print("Free chat needs a live model (Phase 4). Use --scenario to step through a scripted conversation.")
+            raise typer.Exit(1)
+        agent = build_orchestrator(services, coordinator_id=coordinator)
+
+    while True:
+        hint = f" [dim](Enter sends: {turns[0]})[/dim]" if turns else ""
+        try:
+            line = console.input(f"[bold]{current or 'new'}>[/bold]{hint} ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if not line and turns:
+            line = turns.pop(0)
+            console.print(Text(f"coordinator: {line}", style="magenta"))
+        if not line:
+            continue
+        if line.startswith("/"):
+            if line.split()[0] in ("/quit", "/exit", "/q"):
+                break
+            current = _command(line, agent, services, current)
+            continue
+        waiting = current is not None and agent.session(current).state in WAITING
+        result = agent.reply(current, line) if waiting and current else agent.receive_message(line)
+        current = result.request_id
+        console.print(render_result(result))
+
+
+_HELP = """/inbox                       list inbox documents
+/open <doc> [unattended]     start a request from a document
+/sessions                    list requests          /switch <REQ-id>  talk about another request
+/event displaced <case-id>   simulate a displaced case
+/tick                        run timers (reply deadlines)
+/schedule [start end]        the OR schedule        /drafts  outbox drafts
+/audit                       this request's audit trail
+/quit"""
+
+
+def _command(line: str, agent: Orchestrator, services: Services, current: str | None) -> str | None:
+    name, *args = line[1:].split()
+    if name == "help":
+        console.print(_HELP)
+    elif name == "inbox":
+        for doc in services.document_ingest.list_documents():
+            console.print(f"{doc.document_id:10} {doc.channel.value:16} {doc.received_at:%H:%M}  {doc.sender or ''}")
+    elif name == "open" and args:
+        result = agent.receive_document(args[0], interactive=not (len(args) > 1 and args[1] == "unattended"))
+        console.print(render_result(result))
+        return result.request_id
+    elif name == "sessions":
+        table = Table(title="Requests", title_justify="left")
+        for column in ("Request", "State", "Kind", "Patient", "Procedure", "Case"):
+            table.add_column(column)
+        for s in agent.sessions():
+            patient, procedure = s.draft.get(BookingField.PATIENT_NAME), s.draft.get(BookingField.PROCEDURE)
+            table.add_row(
+                s.request_id, s.state.value, s.kind.value, patient.stated if patient else "", procedure.stated if procedure else "", s.case_id or ""
+            )
+        console.print(table)
+    elif name == "switch" and args:
+        return args[0]
+    elif name == "event" and len(args) == 2 and args[0] == "displaced":
+        event = ScheduleEvent(event_id=f"E-{args[1]}", type=EventType.CASE_DISPLACED, occurred_at=services.clock.now(), case_ids=[args[1]])
+        services.event_source.inject(event)
+        results = agent.process_events()
+        for result in results:
+            console.print(render_result(result))
+        return results[-1].request_id if results else current
+    elif name == "tick":
+        for result in agent.tick():
+            console.print(render_result(result))
+    elif name == "schedule":
+        start, end = (date.fromisoformat(a) for a in args) if len(args) == 2 else (date(2026, 11, 2), date(2026, 11, 6))
+        console.print(schedule_table(services, start, end))
+    elif name == "drafts":
+        for d in services.outbox.drafts():
+            title = f"{d.draft_id} {d.message.subject} -> {d.message.recipient_role} ({d.message.channel.value}, draft)"
+            console.print(Panel(d.message.body, title=title, title_align="left"))
+    elif name == "audit" and current:
+        for e in services.audit_log.entries(current):
+            console.print(Text(f"{e.at:%H:%M:%S} {e.kind.value:11} {e.name}", style="dim"))
+    else:
+        console.print(f"Unknown command {line!r}; /help lists them.")
+    return current
 
 
 if __name__ == "__main__":

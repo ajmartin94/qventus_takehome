@@ -1,0 +1,42 @@
+id: demo-01-faxed-request
+title: Faxed request with two patients named Maria Gomez
+clock: 2026-10-14T09:00:00
+
+input:
+  channel: fax
+  document: fax_001          # fixtures/inbox/fax_001.txt
+  interactive: true          # the coordinator works the request in chat
+
+coordinator_turns:
+  - "DOB 3/12/1958, take Tuesday"
+  - "confirm"
+
+# Replay mode only: what the model reads. Evidence is copied verbatim from the fax.
+scripted_extraction:
+  channel: fax
+  intent: new_request
+  mentions:
+    - {field: surgeon,         value: "Dr. Priya Patel",                    evidence: "Surgeon:       Dr. Priya Patel"}
+    - {field: patient_name,    value: "Maria Gomez",                        evidence: "Patient:       Maria Gomez"}
+    - {field: procedure,       value: "Robotic R TKA",                      evidence: "Procedure:     Robotic R TKA"}
+    - {field: laterality,      value: "right",                              evidence: "Robotic R TKA"}
+    - {field: diagnosis,       value: "OA right knee",                      evidence: "Dx:            OA right knee"}
+    - {field: anesthesia_type, value: "General + nerve block",              evidence: "Anesthesia:    General + nerve block"}
+    - {field: patient_class,   value: "Outpatient",                         evidence: "Pt class:      Outpatient"}
+    - {field: authorization,   value: "Medicare Advantage - auth pending",  evidence: "Insurance:     Medicare Advantage - auth pending"}
+    - {field: implants,        value: "Loaner knee set, rep to attend",     evidence: "Equipment:     Loaner knee set, rep to attend"}
+    - {field: date_window,     value: "2026-11-02/2026-11-06",              evidence: "Requested:     Week of 11/2 preferred"}
+  sender: {name: "Dana Whitfield, Northwind Orthopedic Associates (Dr. Patel)", phone: "555-0142", fax: "555-0143"}
+
+scripted_interpretations:
+  - {intent: select_option, select_option: 1, slots: {patient_dob: 1958-03-12}}
+  - {intent: confirm}
+
+expect:
+  final_state: Booked
+  path_includes: [Intake, Matching, Collecting, Searching, Presenting, Holding, Completing, Confirming, Committing, Booked]
+  path_excludes: [Clarifying]
+  case: {surgeon: S-PATEL, procedure: TKA-ROBOTIC, laterality: right, room: OR-5, date: 2026-11-03, start: "13:00", patient_mrn: "100231", status: booked}
+  readiness_items: [h_and_p, prior_authorization, financial_clearance, chart_complete, loaner_set_in_spd, vendor_rep]
+  drafts_to: [surgeons_office]
+  never: [commit_without_confirmation, identifier_not_from_lookup, booking_violates_hard_rule]

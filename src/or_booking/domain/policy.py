@@ -201,6 +201,7 @@ class Situation(StrEnum):
     CLARIFICATION_ATTEMPTS_EXHAUSTED = "clarification_attempts_exhausted"
     READINESS_UPDATE = "readiness_update"
     HUMAN_REQUESTED = "human_requested"
+    AMBIGUOUS_MATCH = "ambiguous_match"  # an input could belong to more than one request or case
 
 
 class RouteAction(StrEnum):

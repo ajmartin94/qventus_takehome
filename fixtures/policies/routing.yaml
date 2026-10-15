@@ -70,3 +70,9 @@
   route_to: [coordinator]
   handoff_fields: [request_summary, contact]
   source: preop_readiness.md#incomplete-requests
+
+- situation: ambiguous_match
+  action: needs_review
+  route_to: [coordinator]
+  handoff_fields: [request_summary, candidates, contact]
+  source: preop_readiness.md#incomplete-requests

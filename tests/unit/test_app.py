@@ -86,3 +86,21 @@ def test_cli_shows_d1_availability_and_the_schedule() -> None:
     assert refused.exit_code == 1 and "NOT_PRIVILEGED" in refused.output
     schedule = runner.invoke(cli_app, ["schedule"], env={"COLUMNS": "200"})
     assert schedule.exit_code == 0 and "TKA-ROBOTIC" in schedule.output
+
+
+def test_cli_replays_d1_end_to_end_with_no_network() -> None:
+    result = CliRunner().invoke(cli_app, ["replay", "d1"], env={"COLUMNS": "200"})
+    assert result.exit_code == 0, result.output
+    assert "Booked C-5001" in result.output and "PASS: demo-01-faxed-request" in result.output
+
+
+def test_cli_chat_steps_through_a_scripted_conversation() -> None:
+    result = CliRunner().invoke(cli_app, ["chat", "--scenario", "d1"], input="\n\n/sessions\n/drafts\n/quit\n", env={"COLUMNS": "200"})
+    assert result.exit_code == 0, result.output
+    assert "coordinator: DOB 3/12/1958, take Tuesday" in result.output and "Booked C-5001" in result.output
+    assert "REQ-0001" in result.output and "D-0001" in result.output
+
+
+def test_cli_free_chat_needs_a_live_model() -> None:
+    result = CliRunner().invoke(cli_app, ["chat"])
+    assert result.exit_code == 1 and "live model" in result.output

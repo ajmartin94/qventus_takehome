@@ -13,7 +13,20 @@ cases:
   - {case_id: C-4414, surgeon_id: S-OKAFOR, procedure_id: LAP-CHOLE,       room_id: OR-5, date: 2026-11-02, start: "13:30", end: "15:00"}
 
   # Tue Nov 3. C-4417 is Grace Liu's robotic left knee (scenario D9 bumps it).
-  - {case_id: C-4417, surgeon_id: S-PATEL,  procedure_id: TKA-ROBOTIC,     room_id: OR-5, date: 2026-11-03, start: "07:30", end: "09:50", laterality: left, patient_mrn: "100856", assets: [ORTHO-ROBOT-1]}
+  - case_id: C-4417
+    surgeon_id: S-PATEL
+    procedure_id: TKA-ROBOTIC
+    room_id: OR-5
+    date: 2026-11-03
+    start: "07:30"
+    end: "09:50"
+    laterality: left
+    patient_mrn: "100856"
+    diagnosis_code: M17.12
+    anesthesia_type: general_with_nerve_block
+    patient_class: outpatient
+    implants: [{system: Total knee system, vendor_id: V-KNEE-01, loaner_set: true, rep_attending: true}]
+    assets: [ORTHO-ROBOT-1]
   - {case_id: C-4418, surgeon_id: S-PATEL,  procedure_id: UKA-ROBOTIC,     room_id: OR-5, date: 2026-11-03, start: "10:20", end: "12:30", laterality: right, assets: [ORTHO-ROBOT-1]}
   - {case_id: C-4419, surgeon_id: S-LEE,    procedure_id: CABG,            room_id: OR-7, date: 2026-11-03, start: "07:30", end: "12:30"}
 

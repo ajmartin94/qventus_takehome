@@ -7,6 +7,9 @@
 # Where the simulated hospital lives. Read only by fixture-backed adapters.
 fixtures_dir: fixtures
 
+# Versioned prompt templates (prompts/<id>.<version>.md).
+prompts_dir: prompts
+
 ports:
   clock:
     adapter: frozen
@@ -15,7 +18,7 @@ ports:
     adapter: jsonl
     settings: {path: var/audit.jsonl}
   store:
-    adapter: memory
+    adapter: memory      # or sqlite, with settings: {path: var/requests.sqlite3}
 
   # The simulated hospital's systems (fixtures/). A real site swaps these for adapters
   # that talk to its EHR and scheduling system; nothing else changes.
@@ -30,7 +33,8 @@ ports:
   outbox:            {adapter: drafts}      # drafts only; nothing is sent
   readiness_handoff: {adapter: recorded}
 
-  # llm: wired in Phase 3 (scripted fake) and Phase 4 (Anthropic)
+  # The model. `scripted` replays scenario scripts with no network; Phase 4 adds `anthropic`.
+  llm:               {adapter: scripted}
 
 llm:
   default_model: claude-opus-5-5

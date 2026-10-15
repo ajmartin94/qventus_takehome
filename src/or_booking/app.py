@@ -20,7 +20,9 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict
 
+from or_booking.interpretation import Interpreter, PromptRegistry, PromptSettings
 from or_booking.observability import audited
+from or_booking.orchestrator import Orchestrator, Ports
 from or_booking.ports import (
     AuditLog,
     Clock,
@@ -72,6 +74,7 @@ class AppConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     fixtures_dir: str
+    prompts_dir: str = "prompts"
     ports: dict[str, PortConfig]
     llm: LLMSettings
     conversation: ConversationSettings = ConversationSettings()
@@ -170,6 +173,18 @@ def _memory_store(ctx: BuildContext, settings: dict[str, Any]) -> Any:
     return MemoryStore()
 
 
+def _sqlite_store(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.store_sqlite import SqliteStore
+
+    return SqliteStore(ctx.path(settings.get("path", "var/requests.sqlite3")))
+
+
+def _scripted_llm(ctx: BuildContext, settings: dict[str, Any]) -> Any:
+    from or_booking.adapters.llm_fake import ScriptedLLM
+
+    return ScriptedLLM()
+
+
 def _scheduling_mock(ctx: BuildContext, settings: dict[str, Any]) -> Any:
     from or_booking.adapters.scheduling_mock import MockSchedulingService
 
@@ -223,7 +238,7 @@ def _readiness_recorded(ctx: BuildContext, settings: dict[str, Any]) -> Any:
 ADAPTERS: dict[str, dict[str, Factory]] = {
     "clock": {"frozen": _frozen_clock, "system": _system_clock},
     "audit_log": {"jsonl": _jsonl_audit, "memory": _memory_audit},
-    "store": {"memory": _memory_store},
+    "store": {"memory": _memory_store, "sqlite": _sqlite_store},
     "scheduling": {"mock": _scheduling_mock},
     "directory": {"fixture": _directory_fixture},
     "duration_history": {"csv": _history_csv},
@@ -232,6 +247,7 @@ ADAPTERS: dict[str, dict[str, Factory]] = {
     "event_source": {"simulated": _events_simulated},
     "outbox": {"drafts": _outbox_drafts},
     "readiness_handoff": {"recorded": _readiness_recorded},
+    "llm": {"scripted": _scripted_llm},
 }
 
 
@@ -316,3 +332,32 @@ def build(
         if wiring[required] == "-":
             raise ValueError(f"Port '{required}' must be configured")
     return Services(config=config, project_root=project_root, wiring=wiring, **ctx.built)
+
+
+def build_orchestrator(services: Services, coordinator_id: str = "C-0042") -> Orchestrator:
+    """The agent: the orchestrator over the wired ports, with the interpreter and its prompts."""
+    config = services.config
+    interpreter = Interpreter(
+        services.llm,
+        PromptRegistry(services.project_root / config.prompts_dir),
+        services.audit_log,
+        services.clock,
+        settings={name: PromptSettings(p.model, p.effort) for name, p in config.llm.prompts.items()},
+        default_model=config.llm.default_model,
+    )
+    ports = Ports(
+        clock=services.clock,
+        audit_log=services.audit_log,
+        store=services.store,
+        scheduling=services.scheduling,
+        directory=services.directory,
+        duration_history=services.duration_history,
+        policy_store=services.policy_store,
+        document_ingest=services.document_ingest,
+        event_source=services.event_source,
+        outbox=services.outbox,
+        readiness_handoff=services.readiness_handoff,
+    )
+    return Orchestrator(
+        ports, interpreter, max_clarifications=config.conversation.max_clarification_attempts, coordinator_id=coordinator_id
+    )

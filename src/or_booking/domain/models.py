@@ -371,6 +371,19 @@ class BookingRequest(Model):
     idempotency_key: str
 
 
+class CaseUpdate(Model):
+    """Changes to a booked case that keeps its slot (anesthesia, class, side, implants, diagnosis)."""
+
+    case_id: str
+    laterality: Laterality | None = None
+    diagnosis_code: str
+    anesthesia_type: AnesthesiaType
+    patient_class: PatientClass
+    implants: list[ImplantRequest] = []
+    updated_by: str
+    idempotency_key: str
+
+
 class BookedCase(Model):
     case_id: str
     status: CaseStatus
@@ -437,6 +450,7 @@ class SourceKind(StrEnum):
     DOCUMENT = "document"
     SURGEONS_ORDER = "surgeons_order"
     PROCEDURE_MASTER = "procedure_master"
+    BOOKED_CASE = "booked_case"
 
 
 class ResolvedBy(StrEnum):

@@ -298,10 +298,13 @@ def qualify_booking(
     policies: HospitalPolicies,
     surgery_date: date | None,
     today: date,
+    already_raised: frozenset[BookingField] = frozenset(),
 ) -> Qualification:
     """Check the booking request against the surgeon's order and the hospital's booking policy.
 
-    `orders` are the resolved patient's surgical orders. Runs after `resolve_patient`.
+    `orders` are the resolved patient's surgical orders. Runs after `resolve_patient`;
+    `already_raised` names fields an earlier step has an issue for, so they aren't
+    reported twice under a vaguer reason.
     """
     issues: list[Issue] = []
     surgeon_id = draft.resolved(F.SURGEON) or ""
@@ -373,7 +376,7 @@ def qualify_booking(
         draft = draft.set(F.IMPLANTS, implants.resolve(procedure.implant.vendor_id, ResolvedBy.LOOKUP, ref=procedure.id))
 
     # The hospital's required booking data
-    raised = {i.field for i in issues}
+    raised = {i.field for i in issues} | set(already_raised)
     for requirement in requirements:
         for field in requirement.require:
             if field in raised or draft.resolved(field) is not None:
