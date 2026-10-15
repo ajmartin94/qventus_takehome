@@ -118,6 +118,11 @@ def test_cli_chat_steps_through_a_scripted_conversation() -> None:
     assert "REQ-0001" in result.output and "D-0001" in result.output
 
 
+def test_cli_prints_the_state_diagram_from_the_transition_table() -> None:
+    result = CliRunner().invoke(cli_app, ["diagram"])
+    assert result.exit_code == 0 and "stateDiagram-v2" in result.output and "Confirming --> Committing: confirmed" in result.output
+
+
 def test_cli_free_chat_needs_a_live_model() -> None:
     result = CliRunner().invoke(cli_app, ["chat"])
     assert result.exit_code == 1 and "live model" in result.output

@@ -21,6 +21,7 @@ from or_booking.domain.models import BookingField, ResolvedBy
 from or_booking.orchestrator import Orchestrator, TurnResult
 from or_booking.orchestrator.session import Session
 from or_booking.ports.audit_log import AuditEntry
+from or_booking.ports.outbox import DraftRecord
 
 
 class _Strict(BaseModel):
@@ -79,6 +80,9 @@ class ScenarioRun(BaseModel):
     turns: list[TurnRecord]
     session: Session
     audit: list[AuditEntry]
+    drafts: list[DraftRecord] = []
+    input_text: str = ""  # the inbound document's text, when the scenario starts from one
+    live: bool = False
     failures: list[str]
 
     @property
@@ -158,7 +162,11 @@ def run_scenario(scenario: Scenario, *, live: bool = False, config_path: Path | 
     session = agent.session(result.request_id)
     audit = services.audit_log.entries()
     failures += grade(scenario.expect, session, agent, services, turns)
-    return ScenarioRun(scenario=scenario, turns=turns, session=session, audit=audit, failures=failures)
+    input_text = services.document_ingest.get_document(scenario.input.document).text if scenario.input.document else ""
+    return ScenarioRun(
+        scenario=scenario, turns=turns, session=session, audit=audit, drafts=services.outbox.drafts(),
+        input_text=input_text, live=live, failures=failures,
+    )  # fmt: skip
 
 
 def _inject(injection: Injection, session: Session, services: Services) -> tuple[str, str | None]:

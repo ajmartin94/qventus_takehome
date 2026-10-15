@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import Annotated
 
 import typer
 from rich.console import Console
@@ -22,10 +23,13 @@ from rich.text import Text
 from or_booking.app import PORTS, PortConfig, Services, build, build_orchestrator, load_config
 from or_booking.channels.render import render_result
 from or_booking.channels.scenario import load_scenario, run_scenario, scenario_paths, services_for
+from or_booking.channels.transcript import demo_transcripts
+from or_booking.channels.transcript import render as render_transcript
 from or_booking.domain.errors import BookingError
 from or_booking.domain.models import AvailabilityQuery, BookingField, CaseMinutes, DateWindow, SlotOption
 from or_booking.orchestrator import Orchestrator
 from or_booking.orchestrator.states import WAITING
+from or_booking.orchestrator.transitions import to_mermaid
 from or_booking.ports.event_source import EventType, ScheduleEvent
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="AI-assisted OR case booking (prototype).")
@@ -262,6 +266,44 @@ def chat(
         result = agent.reply(current, line) if waiting and current else agent.receive_message(line)
         current = result.request_id
         console.print(render_result(result))
+
+
+@app.command()
+def transcripts(
+    out: str = typer.Option("docs/demo", help="Folder to write into, relative to the project"),
+    live: Annotated[
+        list[str] | None, typer.Option("--live", help="Also snapshot a live run of this scenario (spends API credit); repeatable")
+    ] = None,
+) -> None:
+    """Write a markdown transcript of every demo scenario (replay), plus any live snapshots asked for."""
+    root = load_config()[1]
+    folder = root / out
+    for name in live or []:
+        path = find_scenario(name)
+        run = run_scenario(load_scenario(path), live=True)
+        target = folder / "live" / f"{path.stem}.md"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(render_transcript(run), encoding="utf-8")
+        console.print(f"{'PASS' if run.passed else 'FAIL'}  {target.relative_to(root)}  (live; {_model_usage(run.audit)})")
+    for target, text in demo_transcripts(root / SCENARIO_DIR, folder).items():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+        console.print(f"wrote {target.relative_to(root)}")
+
+
+@app.command()
+def diagram(write: bool = typer.Option(False, "--write", help="Rewrite the state diagram in docs/diagrams/booking_flow.md")) -> None:
+    """Print the conversation state diagram, generated from the transition table."""
+    text = to_mermaid()
+    if not write:
+        console.print(f"```mermaid\n{text}\n```", markup=False, highlight=False)
+        return
+    doc = load_config()[1] / "docs" / "diagrams" / "booking_flow.md"
+    before, marker, after = doc.read_text(encoding="utf-8").partition("## 3. Conversation state machine")
+    start = after.index("```mermaid\n") + len("```mermaid\n")
+    end = after.index("```", start)
+    doc.write_text(before + marker + after[:start] + text + "\n" + after[end:], encoding="utf-8")
+    console.print(f"updated {doc}")
 
 
 _HELP = """/inbox                       list inbox documents
